@@ -5,6 +5,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const prisma = require('./config/database');
+const ApiError = require('./utils/apiError');
+
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -20,9 +23,35 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+app.use('/api/auth', authRoutes);
+
 BigInt.prototype.toJSON = function () {
     return this.toString();
 };
+
+app.use((req, res) => {
+    res.status(404).json({
+        status: 'fail',
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+    });
+});
+
+app.use((err, req, res, next) => {
+    if (!err.isOperational) {
+        console.error('[error]:', err);
+    }
+
+    const statusCode = err.statusCode || 500;
+    const message = err.isOperational ? err.message : 'Internal server error';
+
+    res.status(statusCode).json({
+        status: err.status || 'error',
+        message,
+        ...(process.env.NODE_ENV === 'development' && {
+            stack: err.stack,
+        }),
+    });
+});
 
 app.listen(port, async () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
