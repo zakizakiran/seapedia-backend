@@ -1,0 +1,83 @@
+const prisma = require('../config/database');
+const ApiError = require('../utils/apiError');
+
+/**
+ * Submit an application review.
+ * Can be submitted by guest (no auth) or logged-in user.
+ */
+const createReview = async ({ reviewerName, rating, comment, userId = null }) => {
+    const review = await prisma.review.create({
+        data: {
+            reviewerName,
+            rating,
+            comment,
+            userId,
+        },
+        select: {
+            id: true,
+            reviewerName: true,
+            rating: true,
+            comment: true,
+            userId: true,
+            createdAt: true,
+        },
+    });
+
+    return review;
+};
+
+/**
+ * Get all application reviews (public).
+ * Supports pagination and optional sorting.
+ */
+const getReviews = async ({ page = 1, limit = 10, sort = 'newest' }) => {
+    const skip = (page - 1) * limit;
+
+    const orderBy =
+        sort === 'highest'
+            ? { rating: 'desc' }
+            : sort === 'lowest'
+              ? { rating: 'asc' }
+              : { createdAt: 'desc' };
+
+    const [reviews, total] = await Promise.all([
+        prisma.review.findMany({
+            skip,
+            take: limit,
+            orderBy,
+            select: {
+                id: true,
+                reviewerName: true,
+                rating: true,
+                comment: true,
+                createdAt: true,
+            },
+        }),
+        prisma.review.count(),
+    ]);
+
+    // Calculate average rating
+    const stats = await prisma.review.aggregate({
+        _avg: { rating: true },
+        _count: { rating: true },
+    });
+
+    return {
+        reviews,
+        stats: {
+            averageRating: stats._avg.rating ? parseFloat(stats._avg.rating.toFixed(1)) : 0,
+            totalReviews: stats._count.rating,
+        },
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+        },
+    };
+};
+
+module.exports = {
+    createReview,
+    getReviews,
+};

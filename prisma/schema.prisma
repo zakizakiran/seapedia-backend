@@ -25,6 +25,8 @@ model User {
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
   userRoles     UserRole[]
+  store         Store?
+  reviews       Review[]
 
   @@map("users")
 }
@@ -52,4 +54,50 @@ model RefreshToken {
   @@index([userId])
   @@index([token])
   @@map("refresh_tokens")
+}
+
+// --- Level 1.1 & 2: Store & Product ---
+
+model Store {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("stores")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  imageUrl    String?
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([storeId])
+  @@map("products")
+}
+
+// --- Level 1.3: Application Reviews ---
+
+model Review {
+  id           String   @id @default(cuid())
+  reviewerName String
+  rating       Int      // 1-5
+  comment      String
+  userId       String?  // null = guest review
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@map("reviews")
 }
