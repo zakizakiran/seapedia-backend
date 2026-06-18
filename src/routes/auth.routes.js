@@ -7,6 +7,7 @@ const validate = require('../middlewares/validate.middleware');
 const {
     registerValidator,
     loginValidator,
+    selectRoleValidator,
     refreshTokenValidator,
     logoutValidator,
 } = require('../validators/auth.validator');
@@ -17,6 +18,7 @@ router.post('/login', loginValidator, validate, authController.login);
 router.post('/refresh-token', refreshTokenValidator, validate, authController.refreshToken);
 
 // Protected routes
+router.post('/select-role', authenticate, selectRoleValidator, validate, authController.selectRole);
 router.delete('/logout', authenticate, logoutValidator, validate, authController.logout);
 router.get('/profile', authenticate, authController.getProfile);
 

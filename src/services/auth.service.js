@@ -8,8 +8,31 @@ const {
 } = require('../utils/jwt.utils');
 const ApiError = require('../utils/apiError');
 
+/**
+ * Valid non-admin roles that users can self-register with.
+ */
+const NON_ADMIN_ROLES = ['SELLER', 'BUYER', 'DRIVER'];
 
-const register = async ({ email, password, name }) => {
+/**
+ * Helper: format user roles from UserRole[] to string[]
+ */
+const formatRoles = (userRoles) => userRoles.map((ur) => ur.role);
+
+/**
+ * Helper: determine if role selection is required after login/register.
+ * - Admin users skip role selection.
+ * - Single-role non-admin users auto-select their role.
+ * - Multi-role non-admin users must select manually.
+ */
+const resolveActiveRole = (roles) => {
+    if (roles.length === 1) {
+        return { activeRole: roles[0], requiresRoleSelection: false };
+    }
+    return { activeRole: null, requiresRoleSelection: true };
+};
+
+
+const register = async ({ email, password, name, roles }) => {
     const existingUser = await prisma.user.findUnique({
         where: { email },
     });
@@ -18,6 +41,24 @@ const register = async ({ email, password, name }) => {
         throw ApiError.conflict('Email is already registered');
     }
 
+    // Validate roles
+    if (!roles || roles.length === 0) {
+        throw ApiError.badRequest('At least one role is required');
+    }
+
+    for (const role of roles) {
+        if (!NON_ADMIN_ROLES.includes(role)) {
+            throw ApiError.badRequest(
+                `Invalid role '${role}'. Allowed roles: ${NON_ADMIN_ROLES.join(', ')}`
+            );
+        }
+    }
+
+    // Deduplicate roles
+    const uniqueRoles = [...new Set(roles)];
+
+    const { activeRole } = resolveActiveRole(uniqueRoles);
+
     const hashedPassword = await hashPassword(password);
 
     const user = await prisma.user.create({
@@ -25,18 +66,30 @@ const register = async ({ email, password, name }) => {
             email,
             password: hashedPassword,
             name,
-            role: 'USER',
+            activeRole,
+            userRoles: {
+                create: uniqueRoles.map((role) => ({ role })),
+            },
         },
         select: {
             id: true,
             email: true,
             name: true,
-            role: true,
+            activeRole: true,
             createdAt: true,
+            userRoles: {
+                select: { role: true },
+            },
         },
     });
 
-    const accessToken = generateAccessToken({ userId: user.id, role: user.role });
+    const formattedRoles = formatRoles(user.userRoles);
+    const requiresRoleSelection = uniqueRoles.length > 1;
+
+    const accessToken = generateAccessToken({
+        userId: user.id,
+        activeRole: user.activeRole,
+    });
     const refreshToken = generateRefreshToken({ userId: user.id });
 
     await prisma.refreshToken.create({
@@ -48,7 +101,14 @@ const register = async ({ email, password, name }) => {
     });
 
     return {
-        user,
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            roles: formattedRoles,
+            activeRole: user.activeRole,
+        },
+        requiresRoleSelection,
         accessToken,
         refreshToken,
     };
@@ -57,6 +117,11 @@ const register = async ({ email, password, name }) => {
 const login = async ({ email, password }) => {
     const user = await prisma.user.findUnique({
         where: { email },
+        include: {
+            userRoles: {
+                select: { role: true },
+            },
+        },
     });
 
     if (!user) {
@@ -73,7 +138,27 @@ const login = async ({ email, password }) => {
         throw ApiError.unauthorized('Invalid email or password');
     }
 
-    const accessToken = generateAccessToken({ userId: user.id, role: user.role });
+    const roles = formatRoles(user.userRoles);
+    const isAdmin = roles.length === 1 && roles[0] === 'ADMIN';
+
+    // Auto-set activeRole for single-role users (including Admin)
+    let activeRole = user.activeRole;
+    let requiresRoleSelection = false;
+
+    if (roles.length === 1 && !activeRole) {
+        activeRole = roles[0];
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { activeRole },
+        });
+    } else if (roles.length > 1 && !activeRole) {
+        requiresRoleSelection = true;
+    }
+
+    const accessToken = generateAccessToken({
+        userId: user.id,
+        activeRole,
+    });
     const refreshToken = generateRefreshToken({ userId: user.id });
 
     await prisma.refreshToken.create({
@@ -84,12 +169,60 @@ const login = async ({ email, password }) => {
         },
     });
 
-    const { password: _, ...userWithoutPassword } = user;
-
     return {
-        user: userWithoutPassword,
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            roles,
+            activeRole,
+            isActive: user.isActive,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        },
+        requiresRoleSelection,
         accessToken,
         refreshToken,
+    };
+};
+
+
+const selectRole = async (userId, role) => {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            userRoles: {
+                select: { role: true },
+            },
+        },
+    });
+
+    if (!user) {
+        throw ApiError.notFound('User not found');
+    }
+
+    const roles = formatRoles(user.userRoles);
+
+    if (!roles.includes(role)) {
+        throw ApiError.badRequest(
+            `You do not have the '${role}' role. Your roles: ${roles.join(', ')}`
+        );
+    }
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: { activeRole: role },
+    });
+
+    const accessToken = generateAccessToken({
+        userId: user.id,
+        activeRole: role,
+    });
+
+    return {
+        activeRole: role,
+        roles,
+        accessToken,
     };
 };
 
@@ -104,7 +237,15 @@ const refreshAccessToken = async (token) => {
 
     const storedToken = await prisma.refreshToken.findUnique({
         where: { token },
-        include: { user: true },
+        include: {
+            user: {
+                include: {
+                    userRoles: {
+                        select: { role: true },
+                    },
+                },
+            },
+        },
     });
 
     if (!storedToken) {
@@ -124,7 +265,7 @@ const refreshAccessToken = async (token) => {
 
     const newAccessToken = generateAccessToken({
         userId: storedToken.user.id,
-        role: storedToken.user.role,
+        activeRole: storedToken.user.activeRole,
     });
     const newRefreshToken = generateRefreshToken({
         userId: storedToken.user.id,
@@ -165,10 +306,13 @@ const getProfile = async (userId) => {
             id: true,
             email: true,
             name: true,
-            role: true,
+            activeRole: true,
             isActive: true,
             createdAt: true,
             updatedAt: true,
+            userRoles: {
+                select: { role: true },
+            },
         },
     });
 
@@ -176,12 +320,22 @@ const getProfile = async (userId) => {
         throw ApiError.notFound('User not found');
     }
 
-    return user;
+    return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roles: formatRoles(user.userRoles),
+        activeRole: user.activeRole,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+    };
 };
 
 module.exports = {
     register,
     login,
+    selectRole,
     refreshAccessToken,
     logout,
     getProfile,

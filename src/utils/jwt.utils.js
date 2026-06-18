@@ -6,10 +6,12 @@ const ACCESS_EXPIRATION = process.env.JWT_ACCESS_EXPIRATION || '15m';
 const REFRESH_EXPIRATION = process.env.JWT_REFRESH_EXPIRATION || '7d';
 
 const generateAccessToken = (payload) => {
+    // payload: { userId, activeRole }
     return jwt.sign(payload, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRATION });
 };
 
 const generateRefreshToken = (payload) => {
+    // payload: { userId }
     return jwt.sign(payload, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRATION });
 };
 
