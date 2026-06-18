@@ -1,12 +1,14 @@
 # Seapedia Backend
 
-Backend API untuk platform Seapedia.
+Backend API untuk platform SEAPEDIA — marketplace yang menghubungkan Seller, Buyer, dan Driver.
 
 ## ✨ Features
 
 - 🔐 **Authentication & Authorization** - JWT-based authentication dengan access token dan refresh token
+- 👥 **Multi-Role System** - Satu user non-admin bisa memiliki lebih dari satu role (Seller, Buyer, Driver)
+- 🔄 **Active Role Selection** - User wajib memilih active role untuk mengakses dashboard privat
 - 👤 **User Management** - User registration, login, profile management
-- 🛡️ **Data Security** - Protected endpoints dengan JWT authorization dan Role-Based Access Control
+- 🛡️ **Role-Based Access Control** - Protected endpoints berdasarkan **active role**, bukan sekadar daftar role
 - ⚙️ **Data Validation** - Validasi input request menggunakan express-validator
 
 ## 🛠️ Tech Stack
@@ -85,7 +87,7 @@ npx prisma migrate dev
 
 #### c. Run Database Seeding
 
-Untuk membuat akun admin default:
+Untuk membuat akun demo (Admin, Buyer+Seller, Driver, Buyer):
 
 ```bash
 npx prisma db seed
@@ -107,6 +109,33 @@ npm start
 
 Server akan berjalan di `http://localhost:8000` (atau port yang Anda tentukan di `.env`)
 
+## 👥 Role System
+
+SEAPEDIA memiliki **4 role akun**: `ADMIN`, `SELLER`, `BUYER`, `DRIVER`.
+
+### Multi-Role Behavior
+
+- Satu user non-admin **bisa memiliki lebih dari satu role** sekaligus (contoh: BUYER + SELLER).
+- User dengan multi-role **wajib memilih active role** setelah login sebelum mengakses dashboard privat.
+- **Authorization berdasarkan active role**, bukan seluruh daftar role yang dimiliki user.
+- User single-role otomatis mendapatkan active role tanpa perlu memilih.
+
+### Admin Behavior
+
+- Admin ditangani berbeda dari multi-role non-admin.
+- Saat login, Admin otomatis mendapatkan active role `ADMIN` tanpa role selection.
+- Admin **tidak bisa dicampur** dengan role non-admin (akun Admin terpisah).
+- Setup Admin dilakukan via **seed data**.
+
+### Demo Accounts
+
+| Email | Password | Roles | Active Role |
+|-------|----------|-------|-------------|
+| admin@seapedia.com | Admin@1234 | ADMIN | ADMIN (otomatis) |
+| demo@seapedia.com | User@1234 | BUYER, SELLER | — (wajib pilih) |
+| driver@seapedia.com | Driver@1234 | DRIVER | DRIVER (otomatis) |
+| buyer@seapedia.com | Buyer@1234 | BUYER | BUYER (otomatis) |
+
 ## 📚 API Documentation
 
 ### Base URL
@@ -117,14 +146,15 @@ http://localhost:8000/api
 
 ### Endpoints Overview
 
-| Category | Endpoint | Method | Auth Required | Description |
-|----------|----------|--------|---------------|-------------|
+| Category | Endpoint | Method | Auth | Description |
+|----------|----------|--------|------|-------------|
 | **General** | `/health` | GET | ❌ | Check API health status |
-| **Authentication** | `/auth/register` | POST | ❌ | Register new user |
+| **Authentication** | `/auth/register` | POST | ❌ | Register new user dengan multi-role |
 | | `/auth/login` | POST | ❌ | User login |
+| | `/auth/select-role` | POST | ✅ | Pilih active role |
 | | `/auth/refresh-token` | POST | ❌ | Refresh access token |
 | | `/auth/logout` | DELETE | ✅ | User logout |
-| | `/auth/profile` | GET | ✅ | Get user profile |
+| | `/auth/profile` | GET | ✅ | Get user profile + roles + active role |
 
 ### Endpoints
 
@@ -157,11 +187,14 @@ POST /auth/register
 {
   "email": "user@example.com",
   "password": "Password123",
-  "name": "John Doe"
+  "name": "John Doe",
+  "roles": ["BUYER", "SELLER"]
 }
 ```
 
-**Response Success (201):**
+> **Catatan**: Field `roles` adalah array. Role yang tersedia untuk registrasi: `SELLER`, `BUYER`, `DRIVER`. Role `ADMIN` tidak bisa dipilih saat registrasi.
+
+**Response Success (201) — Multi-role:**
 ```json
 {
   "status": "success",
@@ -171,9 +204,30 @@ POST /auth/register
       "id": "cuid12345...",
       "email": "user@example.com",
       "name": "John Doe",
-      "role": "USER",
-      "createdAt": "2026-06-17T02:00:00.000Z"
+      "roles": ["BUYER", "SELLER"],
+      "activeRole": null
     },
+    "requiresRoleSelection": true,
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+**Response Success (201) — Single-role:**
+```json
+{
+  "status": "success",
+  "message": "User registered successfully",
+  "data": {
+    "user": {
+      "id": "cuid12345...",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "roles": ["BUYER"],
+      "activeRole": "BUYER"
+    },
+    "requiresRoleSelection": false,
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -194,7 +248,30 @@ POST /auth/login
 }
 ```
 
-**Response Success (200):**
+**Response Success (200) — Multi-role (memerlukan role selection):**
+```json
+{
+  "status": "success",
+  "message": "Login successful. Please select an active role.",
+  "data": {
+    "user": {
+      "id": "cuid12345...",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "roles": ["BUYER", "SELLER"],
+      "activeRole": null,
+      "isActive": true,
+      "createdAt": "2026-06-17T02:00:00.000Z",
+      "updatedAt": "2026-06-17T02:00:00.000Z"
+    },
+    "requiresRoleSelection": true,
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+**Response Success (200) — Single-role / Admin:**
 ```json
 {
   "status": "success",
@@ -202,16 +279,61 @@ POST /auth/login
   "data": {
     "user": {
       "id": "cuid12345...",
-      "email": "user@example.com",
-      "name": "John Doe",
-      "role": "USER",
+      "email": "admin@seapedia.com",
+      "name": "System Admin",
+      "roles": ["ADMIN"],
+      "activeRole": "ADMIN",
       "isActive": true,
       "createdAt": "2026-06-17T02:00:00.000Z",
       "updatedAt": "2026-06-17T02:00:00.000Z"
     },
+    "requiresRoleSelection": false,
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
+}
+```
+
+> **Catatan**: Jika `requiresRoleSelection` bernilai `true`, user harus memanggil endpoint `POST /auth/select-role` sebelum mengakses endpoint yang dilindungi oleh role tertentu.
+
+##### Select Active Role
+
+```http
+POST /auth/select-role
+```
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "role": "BUYER"
+}
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "message": "Active role set to 'BUYER'",
+  "data": {
+    "activeRole": "BUYER",
+    "roles": ["BUYER", "SELLER"],
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+> **Catatan**: Endpoint ini mengembalikan access token **baru** yang mengandung `activeRole` di payload JWT. Gunakan token baru ini untuk request selanjutnya.
+
+**Response Error (400) — Role tidak dimiliki:**
+```json
+{
+  "status": "fail",
+  "message": "You do not have the 'DRIVER' role. Your roles: BUYER, SELLER"
 }
 ```
 
@@ -286,12 +408,61 @@ Authorization: Bearer <access_token>
       "id": "cuid12345...",
       "email": "user@example.com",
       "name": "John Doe",
-      "role": "USER",
+      "roles": ["BUYER", "SELLER"],
+      "activeRole": "BUYER",
       "isActive": true,
       "createdAt": "2026-06-17T02:00:00.000Z",
       "updatedAt": "2026-06-17T02:00:00.000Z"
     }
   }
+}
+```
+
+## 🔒 Authorization
+
+### Middleware
+
+Endpoint privat dilindungi oleh 2 lapisan middleware:
+
+1. **`authenticate`** — Verifikasi JWT access token. Menambahkan `req.user` dengan info user termasuk `roles[]` dan `activeRole`.
+2. **`authorize(...roles)`** — Cek apakah `activeRole` user termasuk dalam daftar role yang diizinkan.
+
+### Contoh Penggunaan
+
+```javascript
+const authenticate = require('./middlewares/auth.middleware');
+const authorize = require('./middlewares/role.middleware');
+
+// Hanya user dengan active role SELLER yang bisa akses
+router.get('/seller/dashboard', authenticate, authorize('SELLER'), sellerController.dashboard);
+
+// ADMIN atau SELLER bisa akses
+router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productController.list);
+```
+
+### Error Responses
+
+**401 — Belum Login:**
+```json
+{
+  "status": "fail",
+  "message": "Access token is required"
+}
+```
+
+**403 — Belum Pilih Active Role:**
+```json
+{
+  "status": "fail",
+  "message": "No active role selected. Please select an active role before accessing this resource."
+}
+```
+
+**403 — Active Role Tidak Diizinkan:**
+```json
+{
+  "status": "fail",
+  "message": "Active role 'BUYER' is not authorized to access this resource. Required: SELLER, ADMIN"
 }
 ```
 

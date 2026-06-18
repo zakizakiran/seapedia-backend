@@ -1,5 +1,7 @@
 const { body } = require('express-validator');
 
+const VALID_ROLES = ['SELLER', 'BUYER', 'DRIVER'];
+
 const registerValidator = [
     body('email')
         .trim()
@@ -25,6 +27,12 @@ const registerValidator = [
         .withMessage('Name is required')
         .isLength({ min: 2, max: 100 })
         .withMessage('Name must be between 2 and 100 characters'),
+    body('roles')
+        .isArray({ min: 1 })
+        .withMessage('Roles must be a non-empty array'),
+    body('roles.*')
+        .isIn(VALID_ROLES)
+        .withMessage(`Each role must be one of: ${VALID_ROLES.join(', ')}`),
 ];
 
 const loginValidator = [
@@ -38,6 +46,14 @@ const loginValidator = [
     body('password')
         .notEmpty()
         .withMessage('Password is required'),
+];
+
+const selectRoleValidator = [
+    body('role')
+        .notEmpty()
+        .withMessage('Role is required')
+        .isIn([...VALID_ROLES, 'ADMIN'])
+        .withMessage(`Role must be one of: ${[...VALID_ROLES, 'ADMIN'].join(', ')}`),
 ];
 
 const refreshTokenValidator = [
@@ -55,6 +71,7 @@ const logoutValidator = [
 module.exports = {
     registerValidator,
     loginValidator,
+    selectRoleValidator,
     refreshTokenValidator,
     logoutValidator,
 };

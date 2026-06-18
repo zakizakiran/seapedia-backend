@@ -2,9 +2,9 @@ const authService = require('../services/auth.service');
 
 const register = async (req, res, next) => {
     try {
-        const { email, password, name } = req.body;
+        const { email, password, name, roles } = req.body;
 
-        const result = await authService.register({ email, password, name });
+        const result = await authService.register({ email, password, name, roles });
 
         res.status(201).json({
             status: 'success',
@@ -24,7 +24,25 @@ const login = async (req, res, next) => {
 
         res.status(200).json({
             status: 'success',
-            message: 'Login successful',
+            message: result.requiresRoleSelection
+                ? 'Login successful. Please select an active role.'
+                : 'Login successful',
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const selectRole = async (req, res, next) => {
+    try {
+        const { role } = req.body;
+
+        const result = await authService.selectRole(req.user.id, role);
+
+        res.status(200).json({
+            status: 'success',
+            message: `Active role set to '${result.activeRole}'`,
             data: result,
         });
     } catch (error) {
@@ -79,6 +97,7 @@ const getProfile = async (req, res, next) => {
 module.exports = {
     register,
     login,
+    selectRole,
     refreshToken,
     logout,
     getProfile,
