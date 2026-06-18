@@ -10,7 +10,7 @@ describe('Auth API Endpoints', () => {
     let createdUserId;
 
     afterAll(async () => {
-        // Cleanup test user
+        
         if (createdUserId) {
             await prisma.user.delete({ where: { id: createdUserId } }).catch(() => {});
         }
@@ -87,7 +87,6 @@ describe('Auth API Endpoints', () => {
         expect(res.body.data.activeRole).toBe('SELLER');
         expect(res.body.data.accessToken).toBeDefined();
 
-        // Update token with the new one that has activeRole payload
         accessToken = res.body.data.accessToken;
     });
 
@@ -99,7 +98,7 @@ describe('Auth API Endpoints', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.body.data.user.activeRole).toBe('SELLER');
         expect(res.body.data.user.financialSummary.seller).toBeDefined();
-        expect(res.body.data.user.financialSummary.buyer).toBeDefined(); // because user has BUYER role too
+        expect(res.body.data.user.financialSummary.buyer).toBeDefined(); 
     });
 
     it('POST /api/auth/refresh-token - should get new tokens', async () => {

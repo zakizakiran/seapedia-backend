@@ -10,7 +10,7 @@ describe('Store API Endpoints (Seller Experience)', () => {
     const testStoreName = 'Jest Test Store ' + Date.now();
 
     beforeAll(async () => {
-        // Register a BUYER
+        
         const resBuyer = await request(app).post('/api/auth/register').send({
             email: 'buyer-store@seapedia.test',
             password: 'Password123!',
@@ -19,13 +19,11 @@ describe('Store API Endpoints (Seller Experience)', () => {
         });
         accessTokenBuyer = resBuyer.body.data.accessToken;
 
-        // Select active role for BUYER
         const selResBuyer = await request(app).post('/api/auth/select-role')
             .set('Authorization', `Bearer ${accessTokenBuyer}`)
             .send({ role: 'BUYER' });
         accessTokenBuyer = selResBuyer.body.data.accessToken;
 
-        // Register a SELLER
         const resSeller = await request(app).post('/api/auth/register').send({
             email: 'seller-store@seapedia.test',
             password: 'Password123!',
@@ -35,7 +33,6 @@ describe('Store API Endpoints (Seller Experience)', () => {
         accessTokenSeller = resSeller.body.data.accessToken;
         sellerUserId = resSeller.body.data.user.id;
 
-        // Select active role for SELLER
         const selResSeller = await request(app).post('/api/auth/select-role')
             .set('Authorization', `Bearer ${accessTokenSeller}`)
             .send({ role: 'SELLER' });
@@ -43,11 +40,11 @@ describe('Store API Endpoints (Seller Experience)', () => {
     });
 
     afterAll(async () => {
-        // Cleanup store
+        
         if (createdStoreId) {
             await prisma.store.delete({ where: { id: createdStoreId } }).catch(() => {});
         }
-        // Cleanup users
+        
         await prisma.user.deleteMany({
             where: { email: { in: ['buyer-store@seapedia.test', 'seller-store@seapedia.test'] } }
         }).catch(() => {});

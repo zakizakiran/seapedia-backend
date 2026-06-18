@@ -5,7 +5,6 @@ const createReview = async (req, res, next) => {
     try {
         const { reviewerName, rating, comment } = req.body;
 
-        // Optionally extract userId if user is logged in (but don't require it)
         let userId = null;
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -14,7 +13,7 @@ const createReview = async (req, res, next) => {
                 const decoded = verifyAccessToken(token);
                 userId = decoded.userId;
             } catch {
-                // Token invalid/expired — proceed as guest
+                
             }
         }
 
@@ -39,7 +38,7 @@ const getReviews = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const sort = req.query.sort || 'newest'; // newest, highest, lowest
+        const sort = req.query.sort || 'newest'; 
 
         const result = await reviewService.getReviews({ page, limit, sort });
 

@@ -1,10 +1,6 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
 
-/**
- * Get all products (public).
- * Supports pagination, search, and filtering by store.
- */
 const getProducts = async ({ page = 1, limit = 12, search, storeId }) => {
     const skip = (page - 1) * limit;
 
@@ -50,10 +46,6 @@ const getProducts = async ({ page = 1, limit = 12, search, storeId }) => {
     };
 };
 
-/**
- * Get a single product by ID (public).
- * Includes full store info.
- */
 const getProductById = async (productId) => {
     const product = await prisma.product.findUnique({
         where: { id: productId },
@@ -76,11 +68,8 @@ const getProductById = async (productId) => {
     return product;
 };
 
-/**
- * Get products owned by the currently logged in SELLER.
- */
 const getMyProducts = async (userId, { page = 1, limit = 12, search }) => {
-    // Get seller's store
+    
     const store = await prisma.store.findUnique({
         where: { userId },
     });
@@ -120,9 +109,6 @@ const getMyProducts = async (userId, { page = 1, limit = 12, search }) => {
     };
 };
 
-/**
- * Create a new product for the SELLER's store.
- */
 const createProduct = async (userId, data) => {
     const store = await prisma.store.findUnique({
         where: { userId },
@@ -146,9 +132,6 @@ const createProduct = async (userId, data) => {
     return product;
 };
 
-/**
- * Update a product. Only allowed if the SELLER owns it.
- */
 const updateProduct = async (userId, productId, data) => {
     const store = await prisma.store.findUnique({
         where: { userId },
@@ -158,7 +141,6 @@ const updateProduct = async (userId, productId, data) => {
         throw ApiError.badRequest('You must create a store first.');
     }
 
-    // Ensure the product exists and belongs to this store
     const product = await prisma.product.findUnique({
         where: { id: productId },
     });
@@ -185,9 +167,6 @@ const updateProduct = async (userId, productId, data) => {
     return updatedProduct;
 };
 
-/**
- * Delete a product. Only allowed if the SELLER owns it.
- */
 const deleteProduct = async (userId, productId) => {
     const store = await prisma.store.findUnique({
         where: { userId },

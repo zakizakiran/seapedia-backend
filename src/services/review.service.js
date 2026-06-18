@@ -1,10 +1,6 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
 
-/**
- * Submit an application review.
- * Can be submitted by guest (no auth) or logged-in user.
- */
 const createReview = async ({ reviewerName, rating, comment, userId = null }) => {
     const review = await prisma.review.create({
         data: {
@@ -26,10 +22,6 @@ const createReview = async ({ reviewerName, rating, comment, userId = null }) =>
     return review;
 };
 
-/**
- * Get all application reviews (public).
- * Supports pagination and optional sorting.
- */
 const getReviews = async ({ page = 1, limit = 10, sort = 'newest' }) => {
     const skip = (page - 1) * limit;
 
@@ -56,7 +48,6 @@ const getReviews = async ({ page = 1, limit = 10, sort = 'newest' }) => {
         prisma.review.count(),
     ]);
 
-    // Calculate average rating
     const stats = await prisma.review.aggregate({
         _avg: { rating: true },
         _count: { rating: true },
