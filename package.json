@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
@@ -26,7 +26,10 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "cross-env": "^10.1.0",
+    "jest": "^30.4.2",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "supertest": "^7.2.2"
   }
 }

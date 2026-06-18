@@ -57,12 +57,16 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(port, async () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
-    try {
-        await prisma.$connect();
-        console.log('[database]: Connected');
-    } catch (error) {
-        console.error('[database]: Failed to connect to database', error);
-    }
-});
+if (require.main === module) {
+    app.listen(port, async () => {
+        console.log(`[server]: Server is running at http://localhost:${port}`);
+        try {
+            await prisma.$connect();
+            console.log('[database]: Connected');
+        } catch (error) {
+            console.error('[database]: Failed to connect to database', error);
+        }
+    });
+}
+
+module.exports = app;
