@@ -158,8 +158,15 @@ http://localhost:8000/api
 | | `/auth/refresh-token` | POST | ❌ | Refresh access token |
 | | `/auth/logout` | DELETE | ✅ | User logout |
 | | `/auth/profile` | GET | ✅ | Get user profile + roles + active role + financial summary |
+| **Store (Seller)** | `/stores` | POST | ✅ (SELLER) | Buat profil toko (maksimal 1 toko per seller) |
+| | `/stores` | PUT | ✅ (SELLER) | Update nama dan deskripsi toko |
+| | `/stores/my-store` | GET | ✅ (SELLER) | Tarik informasi toko milik seller |
 | **Products** | `/products` | GET | ❌ | Public product listing (search, filter, pagination) |
 | | `/products/:id` | GET | ❌ | Public product detail dengan info toko |
+| | `/products/seller` | POST | ✅ (SELLER) | Tambah produk ke toko (hanya jika sudah punya toko) |
+| | `/products/seller/:id` | PUT | ✅ (SELLER) | Update produk (hanya milik seller tersebut) |
+| | `/products/seller/:id` | DELETE | ✅ (SELLER) | Hapus produk |
+| | `/products/seller/my-products` | GET | ✅ (SELLER) | List semua produk khusus milik toko seller tersebut |
 | **Reviews** | `/reviews` | GET | ❌ | List application reviews (sort, pagination) |
 | | `/reviews` | POST | ❌ | Submit application review (guest atau logged-in) |
 

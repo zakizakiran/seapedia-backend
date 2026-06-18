@@ -10,6 +10,7 @@ const ApiError = require('./utils/apiError');
 const authRoutes = require('./routes/auth.routes');
 const productRoutes = require('./routes/product.routes');
 const reviewRoutes = require('./routes/review.routes');
+const storeRoutes = require('./routes/store.routes');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -28,6 +29,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/stores', storeRoutes);
 
 BigInt.prototype.toJSON = function () {
     return this.toString();
