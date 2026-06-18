@@ -1,9 +1,6 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
 
-/**
- * Get store belonging to the currently logged in user.
- */
 const getMyStore = async (userId) => {
     const store = await prisma.store.findUnique({
         where: { userId },
@@ -16,13 +13,8 @@ const getMyStore = async (userId) => {
     return store;
 };
 
-/**
- * Create a new store for the user.
- * A user can only have one store.
- * Store name must be unique.
- */
 const createStore = async (userId, data) => {
-    // Check if user already has a store
+    
     const existingStore = await prisma.store.findUnique({
         where: { userId },
     });
@@ -31,7 +23,6 @@ const createStore = async (userId, data) => {
         throw ApiError.badRequest('You already have a store.');
     }
 
-    // Check if store name is already taken
     const existingName = await prisma.store.findUnique({
         where: { name: data.name },
     });
@@ -51,9 +42,6 @@ const createStore = async (userId, data) => {
     return store;
 };
 
-/**
- * Update user's store profile.
- */
 const updateStore = async (userId, data) => {
     const store = await prisma.store.findUnique({
         where: { userId },
@@ -63,7 +51,6 @@ const updateStore = async (userId, data) => {
         throw ApiError.notFound('Store not found. Please create one first.');
     }
 
-    // Check if new name is taken by another store
     if (data.name && data.name !== store.name) {
         const existingName = await prisma.store.findUnique({
             where: { name: data.name },

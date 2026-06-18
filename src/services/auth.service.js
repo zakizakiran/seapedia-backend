@@ -8,29 +8,16 @@ const {
 } = require('../utils/jwt.utils');
 const ApiError = require('../utils/apiError');
 
-/**
- * Valid non-admin roles that users can self-register with.
- */
 const NON_ADMIN_ROLES = ['SELLER', 'BUYER', 'DRIVER'];
 
-/**
- * Helper: format user roles from UserRole[] to string[]
- */
 const formatRoles = (userRoles) => userRoles.map((ur) => ur.role);
 
-/**
- * Helper: determine if role selection is required after login/register.
- * - Admin users skip role selection.
- * - Single-role non-admin users auto-select their role.
- * - Multi-role non-admin users must select manually.
- */
 const resolveActiveRole = (roles) => {
     if (roles.length === 1) {
         return { activeRole: roles[0], requiresRoleSelection: false };
     }
     return { activeRole: null, requiresRoleSelection: true };
 };
-
 
 const register = async ({ email, password, name, roles }) => {
     const existingUser = await prisma.user.findUnique({
@@ -41,7 +28,6 @@ const register = async ({ email, password, name, roles }) => {
         throw ApiError.conflict('Email is already registered');
     }
 
-    // Validate roles
     if (!roles || roles.length === 0) {
         throw ApiError.badRequest('At least one role is required');
     }
@@ -54,7 +40,6 @@ const register = async ({ email, password, name, roles }) => {
         }
     }
 
-    // Deduplicate roles
     const uniqueRoles = [...new Set(roles)];
 
     const { activeRole } = resolveActiveRole(uniqueRoles);
@@ -141,7 +126,6 @@ const login = async ({ email, password }) => {
     const roles = formatRoles(user.userRoles);
     const isAdmin = roles.length === 1 && roles[0] === 'ADMIN';
 
-    // Auto-set activeRole for single-role users (including Admin)
     let activeRole = user.activeRole;
     let requiresRoleSelection = false;
 
@@ -186,7 +170,6 @@ const login = async ({ email, password }) => {
     };
 };
 
-
 const selectRole = async (userId, role) => {
     const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -225,7 +208,6 @@ const selectRole = async (userId, role) => {
         accessToken,
     };
 };
-
 
 const refreshAccessToken = async (token) => {
     let decoded;
@@ -285,7 +267,6 @@ const refreshAccessToken = async (token) => {
     };
 };
 
-
 const logout = async (token) => {
     const deletedToken = await prisma.refreshToken.findUnique({
         where: { token },
@@ -297,7 +278,6 @@ const logout = async (token) => {
 
     return true;
 };
-
 
 const getProfile = async (userId) => {
     const user = await prisma.user.findUnique({
@@ -328,26 +308,25 @@ const getProfile = async (userId) => {
 
     const roles = formatRoles(user.userRoles);
 
-    // Build role-specific financial summary placeholders
     const financialSummary = {};
 
     if (roles.includes('BUYER')) {
         financialSummary.buyer = {
-            walletBalance: 0,     // Placeholder — implemented in Level 3
-            totalSpending: 0,     // Placeholder — implemented in Level 4
+            walletBalance: 0,     
+            totalSpending: 0,     
         };
     }
 
     if (roles.includes('SELLER')) {
         financialSummary.seller = {
-            totalIncome: 0,       // Placeholder — implemented in Level 4
+            totalIncome: 0,       
             store: user.store || null,
         };
     }
 
     if (roles.includes('DRIVER')) {
         financialSummary.driver = {
-            totalEarnings: 0,     // Placeholder — implemented in Level 5
+            totalEarnings: 0,     
         };
     }
 

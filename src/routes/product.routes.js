@@ -6,7 +6,6 @@ const validate = require('../middlewares/validate.middleware');
 const authenticate = require('../middlewares/auth.middleware');
 const authorize = require('../middlewares/role.middleware');
 
-// --- Private Seller Routes ---
 router.get(
     '/seller/my-products',
     authenticate,
@@ -39,7 +38,6 @@ router.delete(
     productController.deleteProduct
 );
 
-// --- Public Routes ---
 router.get('/', productController.getProducts);
 router.get('/:id', productController.getProductById);
 

@@ -42,7 +42,6 @@ const authenticate = async (req, res, next) => {
             throw ApiError.unauthorized('User account has been deactivated');
         }
 
-        // Attach user info with roles array and activeRole
         req.user = {
             id: user.id,
             email: user.email,

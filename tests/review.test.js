@@ -7,7 +7,7 @@ describe('Review API Endpoints', () => {
     const testReviewerName = 'Jest Test Reviewer';
 
     afterAll(async () => {
-        // Cleanup test review
+        
         if (createdReviewId) {
             await prisma.review.delete({ where: { id: createdReviewId } }).catch(() => {});
         }
@@ -36,7 +36,7 @@ describe('Review API Endpoints', () => {
         const res = await request(app)
             .post('/api/reviews')
             .send({
-                rating: 10, // Invalid rating
+                rating: 10, 
             });
 
         expect(res.statusCode).toEqual(400);
@@ -53,8 +53,7 @@ describe('Review API Endpoints', () => {
         expect(res.body.data.stats).toBeDefined();
         expect(res.body.data.stats.totalReviews).toBeGreaterThanOrEqual(1);
         expect(res.body.data.pagination).toBeDefined();
-        
-        // Ensure the one we just created is in the system
+
         const found = res.body.data.reviews.find(r => r.id === createdReviewId);
         expect(found).toBeDefined();
     });

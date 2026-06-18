@@ -1,6 +1,5 @@
 const { body } = require('express-validator');
 
-
 const createStoreValidator = [
     body('name')
         .notEmpty()

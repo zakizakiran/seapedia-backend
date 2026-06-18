@@ -6,14 +6,13 @@ describe('Product API Endpoints', () => {
     let dummyStoreId;
     let dummyProductId;
 
-    // Seller test variables
     let sellerToken;
     let sellerUserId;
     let sellerStoreId;
     let createdProductId;
 
     beforeAll(async () => {
-        // Find existing dummy product for public tests
+        
         const product = await prisma.product.findFirst({
             include: { store: true },
         });
@@ -23,7 +22,6 @@ describe('Product API Endpoints', () => {
             dummyStoreId = product.storeId;
         }
 
-        // Setup a SELLER user for private product tests
         const resSeller = await request(app).post('/api/auth/register').send({
             email: 'seller-product@seapedia.test',
             password: 'Password123!',
@@ -33,13 +31,11 @@ describe('Product API Endpoints', () => {
         sellerToken = resSeller.body.data.accessToken;
         sellerUserId = resSeller.body.data.user.id;
 
-        // Select active role
         const selRes = await request(app).post('/api/auth/select-role')
             .set('Authorization', `Bearer ${sellerToken}`)
             .send({ role: 'SELLER' });
         sellerToken = selRes.body.data.accessToken;
 
-        // Create a store for this seller
         const storeRes = await request(app).post('/api/stores')
             .set('Authorization', `Bearer ${sellerToken}`)
             .send({ name: 'Seller Product Test Store' });
@@ -47,13 +43,13 @@ describe('Product API Endpoints', () => {
     });
 
     afterAll(async () => {
-        // Cleanup seller's products
+        
         await prisma.product.deleteMany({ where: { storeId: sellerStoreId } }).catch(() => {});
-        // Cleanup store
+        
         if (sellerStoreId) {
             await prisma.store.delete({ where: { id: sellerStoreId } }).catch(() => {});
         }
-        // Cleanup user
+        
         await prisma.user.deleteMany({ where: { email: 'seller-product@seapedia.test' } }).catch(() => {});
 
         await prisma.$disconnect();
@@ -71,7 +67,7 @@ describe('Product API Endpoints', () => {
     });
 
     it('GET /api/products?search= - should search for products', async () => {
-        // Since we don't know exactly what seed data is there, we search for a common letter or assume it returns 200
+        
         const res = await request(app).get('/api/products?search=ikan');
 
         expect(res.statusCode).toEqual(200);
@@ -113,8 +109,6 @@ describe('Product API Endpoints', () => {
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toBe('Product not found');
     });
-
-    // --- Private Seller Tests ---
 
     it('GET /api/products/seller/my-products - should return empty list initially', async () => {
         const res = await request(app)
@@ -166,7 +160,7 @@ describe('Product API Endpoints', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.body.data.product.price).toBe(60000);
         expect(res.body.data.product.stock).toBe(5);
-        // Name should remain unchanged
+        
         expect(res.body.data.product.name).toBe('Fresh Tuna');
     });
 
@@ -177,8 +171,7 @@ describe('Product API Endpoints', () => {
 
         expect(res.statusCode).toEqual(200);
         expect(res.body.message).toContain('deleted successfully');
-        
-        // Verify it's gone
+
         const checkRes = await request(app).get(`/api/products/${createdProductId}`);
         expect(checkRes.statusCode).toEqual(404);
     });

@@ -6,7 +6,6 @@ const validate = require('../middlewares/validate.middleware');
 const authenticate = require('../middlewares/auth.middleware');
 const authorize = require('../middlewares/role.middleware');
 
-// All store routes require user to be logged in and have activeRole = SELLER
 router.use(authenticate);
 router.use(authorize('SELLER'));
 

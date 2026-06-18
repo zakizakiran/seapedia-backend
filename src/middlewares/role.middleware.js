@@ -1,10 +1,5 @@
 const ApiError = require('../utils/apiError');
 
-/**
- * Role-based authorization middleware.
- * Checks against the user's ACTIVE role, not all owned roles.
- * Must be used after the authenticate middleware.
- */
 const authorize = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user) {
