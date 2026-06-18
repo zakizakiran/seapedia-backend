@@ -313,6 +313,12 @@ const getProfile = async (userId) => {
             userRoles: {
                 select: { role: true },
             },
+            store: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
         },
     });
 
@@ -320,13 +326,39 @@ const getProfile = async (userId) => {
         throw ApiError.notFound('User not found');
     }
 
+    const roles = formatRoles(user.userRoles);
+
+    // Build role-specific financial summary placeholders
+    const financialSummary = {};
+
+    if (roles.includes('BUYER')) {
+        financialSummary.buyer = {
+            walletBalance: 0,     // Placeholder — implemented in Level 3
+            totalSpending: 0,     // Placeholder — implemented in Level 4
+        };
+    }
+
+    if (roles.includes('SELLER')) {
+        financialSummary.seller = {
+            totalIncome: 0,       // Placeholder — implemented in Level 4
+            store: user.store || null,
+        };
+    }
+
+    if (roles.includes('DRIVER')) {
+        financialSummary.driver = {
+            totalEarnings: 0,     // Placeholder — implemented in Level 5
+        };
+    }
+
     return {
         id: user.id,
         email: user.email,
         name: user.name,
-        roles: formatRoles(user.userRoles),
+        roles,
         activeRole: user.activeRole,
         isActive: user.isActive,
+        financialSummary,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
     };

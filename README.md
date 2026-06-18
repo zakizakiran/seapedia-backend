@@ -7,8 +7,10 @@ Backend API untuk platform SEAPEDIA — marketplace yang menghubungkan Seller, B
 - 🔐 **Authentication & Authorization** - JWT-based authentication dengan access token dan refresh token
 - 👥 **Multi-Role System** - Satu user non-admin bisa memiliki lebih dari satu role (Seller, Buyer, Driver)
 - 🔄 **Active Role Selection** - User wajib memilih active role untuk mengakses dashboard privat
-- 👤 **User Management** - User registration, login, profile management
+- 👤 **User Management** - User registration, login, profile management dengan financial summary placeholder
 - 🛡️ **Role-Based Access Control** - Protected endpoints berdasarkan **active role**, bukan sekadar daftar role
+- 🛒 **Public Marketplace** - Katalog produk publik dengan search dan filter, menampilkan info toko (marketplace multi-seller)
+- ⭐ **Application Reviews** - Guest dan logged-in user bisa submit review/rating tentang pengalaman aplikasi
 - ⚙️ **Data Validation** - Validasi input request menggunakan express-validator
 
 ## 🛠️ Tech Stack
@@ -133,6 +135,7 @@ SEAPEDIA memiliki **4 role akun**: `ADMIN`, `SELLER`, `BUYER`, `DRIVER`.
 |-------|----------|-------|-------------|
 | admin@seapedia.com | Admin@1234 | ADMIN | ADMIN (otomatis) |
 | demo@seapedia.com | User@1234 | BUYER, SELLER | — (wajib pilih) |
+| seller@seapedia.com | Seller@1234 | SELLER | SELLER (otomatis) |
 | driver@seapedia.com | Driver@1234 | DRIVER | DRIVER (otomatis) |
 | buyer@seapedia.com | Buyer@1234 | BUYER | BUYER (otomatis) |
 
@@ -154,7 +157,11 @@ http://localhost:8000/api
 | | `/auth/select-role` | POST | ✅ | Pilih active role |
 | | `/auth/refresh-token` | POST | ❌ | Refresh access token |
 | | `/auth/logout` | DELETE | ✅ | User logout |
-| | `/auth/profile` | GET | ✅ | Get user profile + roles + active role |
+| | `/auth/profile` | GET | ✅ | Get user profile + roles + active role + financial summary |
+| **Products** | `/products` | GET | ❌ | Public product listing (search, filter, pagination) |
+| | `/products/:id` | GET | ❌ | Public product detail dengan info toko |
+| **Reviews** | `/reviews` | GET | ❌ | List application reviews (sort, pagination) |
+| | `/reviews` | POST | ❌ | Submit application review (guest atau logged-in) |
 
 ### Endpoints
 
@@ -409,14 +416,192 @@ Authorization: Bearer <access_token>
       "email": "user@example.com",
       "name": "John Doe",
       "roles": ["BUYER", "SELLER"],
-      "activeRole": "BUYER",
+      "activeRole": "SELLER",
       "isActive": true,
+      "financialSummary": {
+        "buyer": {
+          "walletBalance": 0,
+          "totalSpending": 0
+        },
+        "seller": {
+          "totalIncome": 0,
+          "store": {
+            "id": "cuid...",
+            "name": "Nama Toko"
+          }
+        }
+      },
       "createdAt": "2026-06-17T02:00:00.000Z",
       "updatedAt": "2026-06-17T02:00:00.000Z"
     }
   }
 }
 ```
+
+> **Catatan**: `financialSummary` menampilkan data sesuai role yang dimiliki user. Nilai wallet/income/earnings saat ini adalah placeholder (0) dan akan diimplementasikan di level selanjutnya.
+
+#### 3. Products (Public)
+
+##### List Products
+
+```http
+GET /products?page=1&limit=12&search=udang&storeId=cuid...
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| page | number | 1 | Halaman pagination |
+| limit | number | 12 | Jumlah produk per halaman |
+| search | string | — | Cari berdasarkan nama/deskripsi produk |
+| storeId | string | — | Filter produk berdasarkan toko |
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "products": [
+      {
+        "id": "cuid...",
+        "name": "Ikan Tuna Segar",
+        "description": "Ikan tuna segar kualitas ekspor...",
+        "price": 85000,
+        "stock": 50,
+        "imageUrl": null,
+        "storeId": "cuid...",
+        "createdAt": "2026-06-17T02:00:00.000Z",
+        "updatedAt": "2026-06-17T02:00:00.000Z",
+        "store": {
+          "id": "cuid...",
+          "name": "Toko Laut Nusantara"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 12,
+      "total": 10,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+##### Product Detail
+
+```http
+GET /products/:id
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "product": {
+      "id": "cuid...",
+      "name": "Ikan Tuna Segar",
+      "description": "Ikan tuna segar kualitas ekspor...",
+      "price": 85000,
+      "stock": 50,
+      "imageUrl": null,
+      "storeId": "cuid...",
+      "createdAt": "2026-06-17T02:00:00.000Z",
+      "updatedAt": "2026-06-17T02:00:00.000Z",
+      "store": {
+        "id": "cuid...",
+        "name": "Toko Laut Nusantara",
+        "description": "Menjual berbagai hasil laut segar...",
+        "createdAt": "2026-06-17T02:00:00.000Z"
+      }
+    }
+  }
+}
+```
+
+#### 4. Application Reviews (Public)
+
+> Review adalah tentang **pengalaman website/aplikasi SEAPEDIA**, bukan tentang produk/order spesifik. Guest (tanpa akun) maupun user yang sudah login boleh submit review.
+
+##### List Reviews
+
+```http
+GET /reviews?page=1&limit=10&sort=newest
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| page | number | 1 | Halaman pagination |
+| limit | number | 10 | Jumlah review per halaman |
+| sort | string | newest | Urutan: `newest`, `highest`, `lowest` |
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "reviews": [
+      {
+        "id": "cuid...",
+        "reviewerName": "Budi Santoso",
+        "rating": 5,
+        "comment": "Marketplace seafood terbaik!",
+        "createdAt": "2026-06-17T02:00:00.000Z"
+      }
+    ],
+    "stats": {
+      "averageRating": 4.2,
+      "totalReviews": 5
+    },
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 5,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+##### Submit Review
+
+```http
+POST /reviews
+```
+
+**Request Body:**
+```json
+{
+  "reviewerName": "Nama Reviewer",
+  "rating": 5,
+  "comment": "Aplikasi SEAPEDIA sangat membantu!"
+}
+```
+
+> **Catatan**: Jika request menyertakan header `Authorization: Bearer <token>`, review akan dikaitkan dengan userId user yang login. Jika tidak, review dicatat sebagai guest review.
+
+**Response Success (201):**
+```json
+{
+  "status": "success",
+  "message": "Review submitted successfully",
+  "data": {
+    "review": {
+      "id": "cuid...",
+      "reviewerName": "Nama Reviewer",
+      "rating": 5,
+      "comment": "Aplikasi SEAPEDIA sangat membantu!",
+      "userId": null,
+      "createdAt": "2026-06-17T02:00:00.000Z"
+    }
+  }
+}
+```
+
 
 ## 🔒 Authorization
 
