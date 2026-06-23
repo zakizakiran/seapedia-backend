@@ -11,6 +11,8 @@ const authRoutes = require('./routes/auth.routes');
 const productRoutes = require('./routes/product.routes');
 const reviewRoutes = require('./routes/review.routes');
 const storeRoutes = require('./routes/store.routes');
+const walletRoutes = require('./routes/wallet.routes');
+const addressRoutes = require('./routes/address.routes');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -30,6 +32,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/stores', storeRoutes);
+app.use('/api/wallets', walletRoutes);
+app.use('/api/addresses', addressRoutes);
 
 BigInt.prototype.toJSON = function () {
     return this.toString();
