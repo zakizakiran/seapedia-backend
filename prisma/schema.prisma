@@ -20,6 +20,19 @@ enum WalletTransactionType {
   REFUND
 }
 
+enum DeliveryMethod {
+  INSTANT
+  NEXT_DAY
+  REGULAR
+}
+
+enum OrderStatus {
+  PACKING
+  DELIVERING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
@@ -36,6 +49,7 @@ model User {
   wallet        Wallet?
   addresses     Address[]
   cart          Cart?
+  orders        Order[]        @relation("BuyerOrders")
 
   @@map("users")
 }
@@ -74,6 +88,7 @@ model Store {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   products    Product[]
   carts       Cart[]
+  orders      Order[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -90,6 +105,7 @@ model Product {
   storeId     String
   store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   cartItems   CartItem[]
+  orderItems  OrderItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -145,6 +161,7 @@ model Address {
   phoneNumber   String
   fullAddress   String
   isDefault     Boolean  @default(false)
+  orders        Order[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -179,4 +196,53 @@ model CartItem {
   @@unique([cartId, productId])
   @@index([productId])
   @@map("cart_items")
+}
+
+model Order {
+  id             String          @id @default(cuid())
+  buyerId        String
+  buyer          User            @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  storeId        String
+  store          Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  addressId      String
+  address        Address         @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  deliveryMethod DeliveryMethod
+  deliveryFee    Float
+  subtotal       Float
+  tax            Float           
+  total          Float           
+  status         OrderStatus     @default(PACKING)
+  items          OrderItem[]
+  statusHistory  OrderStatusHistory[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([buyerId])
+  @@index([storeId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  createdAt DateTime    @default(now())
+
+  @@index([orderId])
+  @@map("order_status_histories")
 }
