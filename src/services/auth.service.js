@@ -126,18 +126,21 @@ const login = async ({ email, password }) => {
     const roles = formatRoles(user.userRoles);
     const isAdmin = roles.length === 1 && roles[0] === 'ADMIN';
 
-    let activeRole = user.activeRole;
+    let activeRole = null;
     let requiresRoleSelection = false;
 
-    if (roles.length === 1 && !activeRole) {
+    if (isAdmin) {
+        activeRole = 'ADMIN';
+    } else if (roles.length === 1) {
         activeRole = roles[0];
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { activeRole },
-        });
-    } else if (roles.length > 1 && !activeRole) {
+    } else {
         requiresRoleSelection = true;
     }
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { activeRole },
+    });
 
     const accessToken = generateAccessToken({
         userId: user.id,

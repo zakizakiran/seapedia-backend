@@ -22,6 +22,17 @@ describe('Product API Endpoints', () => {
             dummyStoreId = product.storeId;
         }
 
+
+        await prisma.product.deleteMany({
+            where: { store: { user: { email: 'seller-product@seapedia.test' } } }
+        }).catch(() => {});
+        await prisma.store.deleteMany({
+            where: { user: { email: 'seller-product@seapedia.test' } }
+        }).catch(() => {});
+        await prisma.user.deleteMany({
+            where: { email: 'seller-product@seapedia.test' }
+        }).catch(() => {});
+
         const resSeller = await request(app).post('/api/auth/register').send({
             email: 'seller-product@seapedia.test',
             password: 'Password123!',
@@ -36,7 +47,7 @@ describe('Product API Endpoints', () => {
             .send({ role: 'SELLER' });
         sellerToken = selRes.body.data.accessToken;
 
-        const storeRes = await request(app).post('/api/stores')
+        const storeRes = await request(app).post('/api/stores/seller')
             .set('Authorization', `Bearer ${sellerToken}`)
             .send({ name: 'Seller Product Test Store' });
         sellerStoreId = storeRes.body.data.store.id;

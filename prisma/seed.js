@@ -6,11 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
     const SALT_ROUNDS = 12;
 
-    // =====================================================
-    // 1. USER ACCOUNTS
-    // =====================================================
 
-    // --- Admin Account ---
     const adminPassword = await bcrypt.hash('Admin@1234', SALT_ROUNDS);
     const admin = await prisma.user.upsert({
         where: { email: 'admin@seapedia.com' },
@@ -27,7 +23,7 @@ async function main() {
     });
     console.log(`[seed]: ADMIN account ready — ${admin.email}`);
 
-    // --- Multi-role Demo: Buyer + Seller ---
+
     const multiRolePassword = await bcrypt.hash('User@1234', SALT_ROUNDS);
     const multiRoleUser = await prisma.user.upsert({
         where: { email: 'demo@seapedia.com' },
@@ -44,7 +40,7 @@ async function main() {
     });
     console.log(`[seed]: BUYER+SELLER account ready — ${multiRoleUser.email}`);
 
-    // --- Seller Account (for dummy store & products) ---
+
     const sellerPassword = await bcrypt.hash('Seller@1234', SALT_ROUNDS);
     const seller = await prisma.user.upsert({
         where: { email: 'seller@seapedia.com' },
@@ -61,7 +57,7 @@ async function main() {
     });
     console.log(`[seed]: SELLER account ready — ${seller.email}`);
 
-    // --- Driver Account ---
+
     const driverPassword = await bcrypt.hash('Driver@1234', SALT_ROUNDS);
     const driver = await prisma.user.upsert({
         where: { email: 'driver@seapedia.com' },
@@ -78,7 +74,7 @@ async function main() {
     });
     console.log(`[seed]: DRIVER account ready — ${driver.email}`);
 
-    // --- Buyer Account ---
+
     const buyerPassword = await bcrypt.hash('Buyer@1234', SALT_ROUNDS);
     const buyer = await prisma.user.upsert({
         where: { email: 'buyer@seapedia.com' },
@@ -95,9 +91,6 @@ async function main() {
     });
     console.log(`[seed]: BUYER account ready — ${buyer.email}`);
 
-    // =====================================================
-    // 2. STORES (Dummy for Level 1.1)
-    // =====================================================
 
     const store1 = await prisma.store.upsert({
         where: { name: 'Toko Laut Nusantara' },
@@ -110,7 +103,7 @@ async function main() {
     });
     console.log(`[seed]: Store ready — ${store1.name}`);
 
-    // Create a second store for multi-role user (if they have SELLER role)
+
     const store2 = await prisma.store.upsert({
         where: { name: 'Samudra Seafood' },
         update: {},
@@ -122,12 +115,8 @@ async function main() {
     });
     console.log(`[seed]: Store ready — ${store2.name}`);
 
-    // =====================================================
-    // 3. PRODUCTS (Dummy for Level 1.1)
-    // =====================================================
 
     const productsData = [
-        // Store 1 products
         {
             name: 'Ikan Tuna Segar',
             description: 'Ikan tuna segar kualitas ekspor, ditangkap langsung dari laut dalam Maluku. Cocok untuk sashimi, steak, atau masakan rumahan.',
@@ -168,7 +157,6 @@ async function main() {
             imageUrl: null,
             storeId: store1.id,
         },
-        // Store 2 products
         {
             name: 'Nugget Ikan Dori',
             description: 'Nugget ikan dori homemade, tanpa pengawet. Dilapisi tepung roti renyah, tinggal goreng. Isi 15 pcs per pack.',
@@ -211,20 +199,14 @@ async function main() {
         },
     ];
 
-    for (const product of productsData) {
-        await prisma.product.upsert({
-            where: {
-                id: `seed-${product.name.toLowerCase().replace(/\s+/g, '-')}`,
-            },
-            update: {},
-            create: product,
-        });
+    const existingProducts = await prisma.product.count();
+    if (existingProducts === 0) {
+        await prisma.product.createMany({ data: productsData });
+        console.log(`[seed]: ${productsData.length} products created`);
+    } else {
+        console.log(`[seed]: Products already exist, skipping`);
     }
-    console.log(`[seed]: ${productsData.length} products created`);
 
-    // =====================================================
-    // 4. APPLICATION REVIEWS (Dummy for Level 1.3)
-    // =====================================================
 
     const reviewsData = [
         {
@@ -237,7 +219,7 @@ async function main() {
             reviewerName: 'Siti Rahayu',
             rating: 4,
             comment: 'Aplikasinya mudah digunakan, pilihan produk lumayan banyak. Semoga bisa tambah fitur wishlist ya.',
-            userId: null, // guest review
+            userId: null,
         },
         {
             reviewerName: 'Ahmad Fauzi',

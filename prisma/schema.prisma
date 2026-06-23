@@ -56,7 +56,6 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-// --- Level 1.1 & 2: Store & Product ---
 
 model Store {
   id          String    @id @default(cuid())
@@ -87,14 +86,13 @@ model Product {
   @@map("products")
 }
 
-// --- Level 1.3: Application Reviews ---
 
 model Review {
   id           String   @id @default(cuid())
   reviewerName String
-  rating       Int      // 1-5
+  rating       Int
   comment      String
-  userId       String?  // null = guest review
+  userId       String?
   user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
 

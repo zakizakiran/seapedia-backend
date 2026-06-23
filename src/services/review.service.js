@@ -1,12 +1,16 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
+const { escapeHtml } = require('../utils/sanitize.utils');
 
 const createReview = async ({ reviewerName, rating, comment, userId = null }) => {
+    const sanitizedName = escapeHtml(reviewerName);
+    const sanitizedComment = escapeHtml(comment);
+
     const review = await prisma.review.create({
         data: {
-            reviewerName,
+            reviewerName: sanitizedName,
             rating,
-            comment,
+            comment: sanitizedComment,
             userId,
         },
         select: {

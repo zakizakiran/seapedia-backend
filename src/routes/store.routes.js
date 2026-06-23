@@ -6,23 +6,38 @@ const validate = require('../middlewares/validate.middleware');
 const authenticate = require('../middlewares/auth.middleware');
 const authorize = require('../middlewares/role.middleware');
 
-router.use(authenticate);
-router.use(authorize('SELLER'));
 
-router.get('/my-store', storeController.getMyStore);
+router.get('/', storeController.getStores);
+
+
+router.get(
+    '/seller/my-store',
+    authenticate,
+    authorize('SELLER'),
+    storeController.getMyStore
+);
+
 
 router.post(
-    '/',
+    '/seller',
+    authenticate,
+    authorize('SELLER'),
     storeValidator.createStoreValidator,
     validate,
     storeController.createStore
 );
 
 router.put(
-    '/',
+    '/seller',
+    authenticate,
+    authorize('SELLER'),
     storeValidator.updateStoreValidator,
     validate,
     storeController.updateStore
 );
 
+
+router.get('/:id', storeController.getStoreById);
+
 module.exports = router;
+

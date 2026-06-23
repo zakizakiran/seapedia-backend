@@ -52,27 +52,27 @@ describe('Store API Endpoints (Seller Experience)', () => {
         await prisma.$disconnect();
     });
 
-    it('GET /api/stores/my-store - should fail for BUYER (RBAC)', async () => {
+    it('GET /api/stores/seller/my-store - should fail for BUYER (RBAC)', async () => {
         const res = await request(app)
-            .get('/api/stores/my-store')
+            .get('/api/stores/seller/my-store')
             .set('Authorization', `Bearer ${accessTokenBuyer}`);
 
         expect(res.statusCode).toEqual(403);
         expect(res.body.message).toContain('not authorized to access this resource');
     });
 
-    it('GET /api/stores/my-store - should return 404 for SELLER with no store', async () => {
+    it('GET /api/stores/seller/my-store - should return 404 for SELLER with no store', async () => {
         const res = await request(app)
-            .get('/api/stores/my-store')
+            .get('/api/stores/seller/my-store')
             .set('Authorization', `Bearer ${accessTokenSeller}`);
 
         expect(res.statusCode).toEqual(404);
         expect(res.body.message).toContain('Store not found');
     });
 
-    it('POST /api/stores - should create a new store for SELLER', async () => {
+    it('POST /api/stores/seller - should create a new store for SELLER', async () => {
         const res = await request(app)
-            .post('/api/stores')
+            .post('/api/stores/seller')
             .set('Authorization', `Bearer ${accessTokenSeller}`)
             .send({
                 name: testStoreName,
@@ -87,9 +87,9 @@ describe('Store API Endpoints (Seller Experience)', () => {
         createdStoreId = res.body.data.store.id;
     });
 
-    it('POST /api/stores - should fail if SELLER creates another store', async () => {
+    it('POST /api/stores/seller - should fail if SELLER creates another store', async () => {
         const res = await request(app)
-            .post('/api/stores')
+            .post('/api/stores/seller')
             .set('Authorization', `Bearer ${accessTokenSeller}`)
             .send({
                 name: testStoreName + ' 2',
@@ -99,10 +99,10 @@ describe('Store API Endpoints (Seller Experience)', () => {
         expect(res.body.message).toContain('already have a store');
     });
 
-    it('PUT /api/stores - should update the store profile', async () => {
+    it('PUT /api/stores/seller - should update the store profile', async () => {
         const newName = testStoreName + ' Updated';
         const res = await request(app)
-            .put('/api/stores')
+            .put('/api/stores/seller')
             .set('Authorization', `Bearer ${accessTokenSeller}`)
             .send({
                 name: newName,
