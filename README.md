@@ -169,6 +169,22 @@ http://localhost:8000/api
 | | `/products/seller/my-products` | GET | ✅ (SELLER) | List semua produk khusus milik toko seller tersebut |
 | **Reviews** | `/reviews` | GET | ❌ | List application reviews (sort, pagination) |
 | | `/reviews` | POST | ❌ | Submit application review (guest atau logged-in) |
+| **Wallets** | `/wallets/my-wallet` | GET | ✅ (BUYER) | Lihat balance dan riwayat transaksi dompet |
+| | `/wallets/top-up` | POST | ✅ (BUYER) | Dummy top-up balance wallet |
+| **Addresses** | `/addresses` | POST | ✅ (BUYER) | Tambah alamat pengiriman baru |
+| | `/addresses` | GET | ✅ (BUYER) | List semua alamat milik buyer |
+| | `/addresses/:id` | PUT | ✅ (BUYER) | Update alamat |
+| | `/addresses/:id` | DELETE | ✅ (BUYER) | Hapus alamat |
+| | `/addresses/:id/default` | PATCH | ✅ (BUYER) | Jadikan alamat sebagai default utama |
+| **Carts** | `/carts` | GET | ✅ (BUYER) | Lihat isi keranjang dan subtotal |
+| | `/carts/items` | POST | ✅ (BUYER) | Tambah produk atau update kuantitas di keranjang |
+| | `/carts/items/:productId` | DELETE | ✅ (BUYER) | Hapus produk tertentu dari keranjang |
+| **Orders** | `/orders/summary` | POST | ✅ (BUYER) | Dapatkan rincian harga sebelum konfirmasi checkout |
+| | `/orders` | POST | ✅ (BUYER) | Proses checkout dan buat pesanan baru |
+| | `/orders/buyer` | GET | ✅ (BUYER) | Lihat daftar pesanan yang pernah dibuat buyer |
+| | `/orders/buyer/:id` | GET | ✅ (BUYER) | Lihat detail suatu pesanan buyer |
+| | `/orders/seller` | GET | ✅ (SELLER) | Lihat daftar pesanan masuk ke toko seller |
+| | `/orders/seller/:id` | GET | ✅ (SELLER) | Lihat detail pesanan yang masuk ke toko seller |
 
 ### Endpoints
 
@@ -609,6 +625,326 @@ POST /reviews
 }
 ```
 
+#### 5. Stores (Seller)
+
+##### Create Store
+
+```http
+POST /stores
+```
+
+**Request Body:**
+```json
+{
+  "name": "Toko Laut Nusantara",
+  "description": "Menjual hasil laut segar."
+}
+```
+
+**Response Success (201):**
+```json
+{
+  "status": "success",
+  "message": "Store created successfully",
+  "data": {
+    "id": "cuid...",
+    "name": "Toko Laut Nusantara",
+    "description": "Menjual hasil laut segar."
+  }
+}
+```
+
+##### Update Store
+
+```http
+PUT /stores
+```
+
+**Request Body:**
+```json
+{
+  "name": "Toko Laut Nusantara Baru",
+  "description": "Menjual hasil laut segar dan olahan."
+}
+```
+
+##### Get My Store
+
+```http
+GET /stores/my-store
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "cuid...",
+    "name": "Toko Laut Nusantara",
+    "description": "Menjual hasil laut segar."
+  }
+}
+```
+
+#### 6. Products (Seller)
+
+##### Create Product
+
+```http
+POST /products/seller
+```
+
+**Request Body:**
+```json
+{
+  "name": "Udang Tiger",
+  "description": "Udang segar per kg.",
+  "price": 120000,
+  "stock": 100,
+  "imageUrl": null
+}
+```
+
+**Response Success (201):**
+```json
+{
+  "status": "success",
+  "message": "Product created successfully",
+  "data": {
+    "id": "cuid...",
+    "name": "Udang Tiger",
+    "price": 120000,
+    "stock": 100
+  }
+}
+```
+
+##### Update Product
+
+```http
+PUT /products/seller/:id
+```
+
+**Request Body:**
+```json
+{
+  "name": "Udang Tiger Premium",
+  "price": 125000,
+  "stock": 150
+}
+```
+
+##### Delete Product
+
+```http
+DELETE /products/seller/:id
+```
+
+##### Get My Products
+
+```http
+GET /products/seller/my-products
+```
+
+#### 7. Wallets (Buyer)
+
+##### Get Wallet Details
+
+```http
+GET /wallets/my-wallet
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "cuid...",
+    "balance": 150000,
+    "transactions": [
+      {
+        "id": "cuid...",
+        "amount": 150000,
+        "type": "TOP_UP",
+        "description": "Dummy top up",
+        "createdAt": "2026-06-17T02:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+##### Top Up Wallet
+
+```http
+POST /wallets/top-up
+```
+
+**Request Body:**
+```json
+{
+  "amount": 150000
+}
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "message": "Wallet topped up successfully",
+  "data": {
+    "balance": 150000
+  }
+}
+```
+
+#### 8. Addresses (Buyer)
+
+##### Create Address
+
+```http
+POST /addresses
+```
+
+**Request Body:**
+```json
+{
+  "title": "Rumah",
+  "recipientName": "John Doe",
+  "phoneNumber": "08123456789",
+  "fullAddress": "Jl. Raya No. 123, Jakarta"
+}
+```
+
+##### Get All Addresses
+
+```http
+GET /addresses
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "cuid...",
+      "title": "Rumah",
+      "recipientName": "John Doe",
+      "phoneNumber": "08123456789",
+      "fullAddress": "Jl. Raya No. 123, Jakarta",
+      "isDefault": true
+    }
+  ]
+}
+```
+
+#### 9. Carts (Buyer)
+
+##### Get Cart Summary
+
+```http
+GET /carts
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "cuid...",
+    "storeId": "cuid...",
+    "subtotal": 85000,
+    "items": [
+      {
+        "id": "cuid...",
+        "productId": "cuid...",
+        "quantity": 1,
+        "product": {
+          "name": "Ikan Tuna Segar",
+          "price": 85000,
+          "imageUrl": null
+        }
+      }
+    ]
+  }
+}
+```
+
+##### Add/Update Cart Item
+
+```http
+POST /carts/items
+```
+
+**Request Body:**
+```json
+{
+  "productId": "cuid...",
+  "quantity": 2
+}
+```
+
+> **Catatan**: Jika produk berasal dari toko yang berbeda dengan isi cart saat ini, request akan ditolak (400 Bad Request) untuk menjaga aturan *Single-Store Checkout*.
+
+#### 10. Orders (Buyer & Seller)
+
+##### Get Checkout Summary (Buyer)
+
+```http
+POST /orders/summary
+```
+
+**Request Body:**
+```json
+{
+  "addressId": "cuid...",
+  "deliveryMethod": "NEXT_DAY"
+}
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "subtotal": 85000,
+    "deliveryFee": 30000,
+    "tax": 10200,
+    "total": 125200
+  }
+}
+```
+
+##### Create Order / Checkout (Buyer)
+
+```http
+POST /orders
+```
+
+**Request Body:**
+```json
+{
+  "addressId": "cuid...",
+  "deliveryMethod": "NEXT_DAY"
+}
+```
+
+**Response Success (201):**
+```json
+{
+  "status": "success",
+  "message": "Order created successfully",
+  "data": {
+    "id": "cuid...",
+    "status": "PACKING",
+    "subtotal": 85000,
+    "deliveryFee": 30000,
+    "tax": 10200,
+    "total": 125200
+  }
+}
+```
 
 ## 🔒 Authorization
 
