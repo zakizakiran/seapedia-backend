@@ -9,12 +9,14 @@ const ApiError = require('./utils/apiError');
 
 const authRoutes = require('./routes/auth.routes');
 const productRoutes = require('./routes/product.routes');
+const orderRoutes = require('./routes/order.routes');
+const discountRoutes = require('./routes/discount.routes');
+const reportRoutes = require('./routes/report.routes');
 const reviewRoutes = require('./routes/review.routes');
 const storeRoutes = require('./routes/store.routes');
 const walletRoutes = require('./routes/wallet.routes');
 const addressRoutes = require('./routes/address.routes');
 const cartRoutes = require('./routes/cart.routes');
-const orderRoutes = require('./routes/order.routes');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -38,6 +40,8 @@ app.use('/api/wallets', walletRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/carts', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/discounts', discountRoutes);
+app.use('/api/reports', reportRoutes);
 
 BigInt.prototype.toJSON = function () {
     return this.toString();
