@@ -209,8 +209,13 @@ model Order {
   deliveryMethod DeliveryMethod
   deliveryFee    Float
   subtotal       Float
+  discount       Float           @default(0)
   tax            Float           
   total          Float           
+  voucherId      String?
+  voucher        Voucher?        @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  promoId        String?
+  promo          Promo?          @relation(fields: [promoId], references: [id], onDelete: SetNull)
   status         OrderStatus     @default(PACKING)
   items          OrderItem[]
   statusHistory  OrderStatusHistory[]
@@ -219,6 +224,8 @@ model Order {
 
   @@index([buyerId])
   @@index([storeId])
+  @@index([voucherId])
+  @@index([promoId])
   @@map("orders")
 }
 
@@ -245,4 +252,31 @@ model OrderStatusHistory {
 
   @@index([orderId])
   @@map("order_status_histories")
+}
+
+model Voucher {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  discountAmount   Float?
+  discountPercent  Float?
+  expiryDate       DateTime
+  remainingUsage   Int
+  orders           Order[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("vouchers")
+}
+
+model Promo {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  discountAmount   Float?
+  discountPercent  Float?
+  expiryDate       DateTime
+  orders           Order[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("promos")
 }

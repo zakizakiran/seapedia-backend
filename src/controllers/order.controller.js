@@ -2,8 +2,8 @@ const orderService = require('../services/order.service');
 
 const createOrder = async (req, res, next) => {
     try {
-        const { addressId, deliveryMethod } = req.body;
-        const result = await orderService.createOrder(req.user.id, addressId, deliveryMethod);
+        const { addressId, deliveryMethod, discountCode } = req.body;
+        const result = await orderService.createOrder(req.user.id, addressId, deliveryMethod, discountCode);
         res.status(201).json({
             success: true,
             message: 'Order created successfully',
@@ -16,8 +16,8 @@ const createOrder = async (req, res, next) => {
 
 const getCheckoutSummary = async (req, res, next) => {
     try {
-        const { addressId, deliveryMethod } = req.body;
-        const result = await orderService.getCheckoutSummary(req.user.id, addressId, deliveryMethod);
+        const { addressId, deliveryMethod, discountCode } = req.body;
+        const result = await orderService.getCheckoutSummary(req.user.id, addressId, deliveryMethod, discountCode);
         res.status(200).json({
             success: true,
             data: result
