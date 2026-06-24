@@ -46,4 +46,10 @@ router.get(
     orderController.getSellerOrderById
 );
 
+router.patch(
+    '/seller/:id/process',
+    roleMiddleware('SELLER'),
+    orderController.processOrder
+);
+
 module.exports = router;
