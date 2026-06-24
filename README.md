@@ -185,6 +185,15 @@ http://localhost:8000/api
 | | `/orders/buyer/:id` | GET | ✅ (BUYER) | Lihat detail suatu pesanan buyer |
 | | `/orders/seller` | GET | ✅ (SELLER) | Lihat daftar pesanan masuk ke toko seller |
 | | `/orders/seller/:id` | GET | ✅ (SELLER) | Lihat detail pesanan yang masuk ke toko seller |
+| | `/orders/seller/:id/process` | PATCH | ✅ (SELLER) | Proses status order dari PACKING ke WAITING_FOR_DRIVER |
+| **Discounts** | `/discounts/vouchers` | POST | ✅ (ADMIN) | Buat voucher diskon |
+| | `/discounts/vouchers` | GET | ✅ (ADMIN) | List semua voucher diskon |
+| | `/discounts/vouchers/:id` | GET | ✅ (ADMIN) | Detail voucher diskon |
+| | `/discounts/promos` | POST | ✅ (ADMIN) | Buat promo diskon |
+| | `/discounts/promos` | GET | ✅ (ADMIN) | List semua promo diskon |
+| | `/discounts/promos/:id` | GET | ✅ (ADMIN) | Detail promo diskon |
+| **Reports** | `/reports/buyer/spending` | GET | ✅ (BUYER) | Laporan total pengeluaran buyer |
+| | `/reports/seller/income` | GET | ✅ (SELLER) | Laporan total pemasukan seller |
 
 ### Endpoints
 
@@ -942,6 +951,105 @@ POST /orders
     "deliveryFee": 30000,
     "tax": 10200,
     "total": 125200
+  }
+}
+```
+
+##### Process Order (Seller)
+
+```http
+PATCH /orders/seller/:id/process
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "message": "Order processed successfully",
+  "data": {
+    "id": "cuid...",
+    "status": "WAITING_FOR_DRIVER"
+  }
+}
+```
+
+#### 11. Discounts (Admin)
+
+##### Create Voucher
+
+```http
+POST /discounts/vouchers
+```
+
+**Request Body:**
+```json
+{
+  "code": "SUMMER10K",
+  "discountAmount": 10000,
+  "expiryDate": "2024-12-31T23:59:59.000Z",
+  "remainingUsage": 100
+}
+```
+
+**Response Success (201):**
+```json
+{
+  "status": "success",
+  "data": {
+    "voucher": {
+      "id": "cuid...",
+      "code": "SUMMER10K",
+      "discountAmount": 10000,
+      "remainingUsage": 100
+    }
+  }
+}
+```
+
+#### 12. Reports
+
+##### Get Buyer Spending Report
+
+```http
+GET /reports/buyer/spending
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "totalSpent": 1500000,
+    "orders": [
+      {
+        "id": "cuid...",
+        "total": 250000,
+        "createdAt": "2024-03-15T10:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+##### Get Seller Income Report
+
+```http
+GET /reports/seller/income
+```
+
+**Response Success (200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "totalIncome": 5000000,
+    "orders": [
+      {
+        "id": "cuid...",
+        "subtotal": 100000,
+        "createdAt": "2024-03-15T10:00:00.000Z"
+      }
+    ]
   }
 }
 ```
