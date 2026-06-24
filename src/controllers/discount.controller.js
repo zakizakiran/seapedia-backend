@@ -1,14 +1,14 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
 
-exports.createVoucher = async (req, res, next) => {
+const createVoucher = async (req, res, next) => {
     try {
         const { code, discountAmount, discountPercent, expiryDate, remainingUsage } = req.body;
-        
+
         if (!code || !expiryDate || remainingUsage === undefined) {
             throw new ApiError('Missing required fields', 400);
         }
-        
+
         if (!discountAmount && !discountPercent) {
             throw new ApiError('Must provide either discountAmount or discountPercent', 400);
         }
@@ -29,7 +29,7 @@ exports.createVoucher = async (req, res, next) => {
     }
 };
 
-exports.getVouchers = async (req, res, next) => {
+const getVouchers = async (req, res, next) => {
     try {
         const vouchers = await prisma.voucher.findMany();
         res.status(200).json({ status: 'success', data: { vouchers } });
@@ -38,7 +38,7 @@ exports.getVouchers = async (req, res, next) => {
     }
 };
 
-exports.createPromo = async (req, res, next) => {
+const createPromo = async (req, res, next) => {
     try {
         const { code, discountAmount, discountPercent, expiryDate } = req.body;
 
@@ -65,11 +65,18 @@ exports.createPromo = async (req, res, next) => {
     }
 };
 
-exports.getPromos = async (req, res, next) => {
+const getPromos = async (req, res, next) => {
     try {
         const promos = await prisma.promo.findMany();
         res.status(200).json({ status: 'success', data: { promos } });
     } catch (error) {
         next(error);
     }
+};
+
+module.exports = {
+    createVoucher,
+    getVouchers,
+    createPromo,
+    getPromos
 };
