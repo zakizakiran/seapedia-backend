@@ -8,7 +8,7 @@ const orderValidator = require('../validators/order.validator');
 
 router.use(authMiddleware);
 
-// Buyer Routes
+
 router.post(
     '/summary',
     roleMiddleware('BUYER'),
@@ -34,7 +34,7 @@ router.get(
     orderController.getBuyerOrderById
 );
 
-// Seller Routes
+
 router.get(
     '/seller',
     roleMiddleware('SELLER'),

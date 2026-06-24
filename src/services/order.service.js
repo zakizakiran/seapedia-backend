@@ -10,7 +10,6 @@ const DELIVERY_FEES = {
 const TAX_RATE = 0.12;
 
 const getCheckoutSummary = async (buyerId, addressId, deliveryMethod, discountCode) => {
-    // Get Cart
     const cart = await prisma.cart.findUnique({
         where: { userId: buyerId },
         include: {
@@ -22,7 +21,6 @@ const getCheckoutSummary = async (buyerId, addressId, deliveryMethod, discountCo
         throw ApiError.badRequest('Cart is empty');
     }
 
-    // Verify Address
     const address = await prisma.address.findUnique({
         where: { id: addressId }
     });
@@ -72,7 +70,6 @@ const getCheckoutSummary = async (buyerId, addressId, deliveryMethod, discountCo
 
 const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => {
     return await prisma.$transaction(async (tx) => {
-        // 1. Get Cart
         const cart = await tx.cart.findUnique({
             where: { userId: buyerId },
             include: {
@@ -86,7 +83,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             throw ApiError.badRequest('Cart is empty');
         }
 
-        // 2. Verify Address
         const address = await tx.address.findUnique({
             where: { id: addressId }
         });
@@ -95,7 +91,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             throw ApiError.badRequest('Invalid address');
         }
 
-        // 3. Verify Stock & Calculate Subtotal
         let subtotal = 0;
         for (const item of cart.items) {
             if (item.product.stock < item.quantity) {
@@ -134,7 +129,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
         const tax = discountedSubtotal * TAX_RATE;
         const total = discountedSubtotal + tax + deliveryFee;
 
-        // 4. Check Wallet
         const wallet = await tx.wallet.findUnique({
             where: { userId: buyerId }
         });
@@ -143,7 +137,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             throw ApiError.badRequest('Insufficient wallet balance');
         }
 
-        // 5. Deduct Wallet
         await tx.wallet.update({
             where: { id: wallet.id },
             data: { balance: { decrement: total } }
@@ -158,7 +151,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             }
         });
 
-        // 6. Deduct Stock Safely (Race Condition Protection)
         for (const item of cart.items) {
             const updatedProduct = await tx.product.updateMany({
                 where: { 
@@ -173,7 +165,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             }
         }
 
-        // 7. Deduct Voucher Usage
         if (voucherId) {
             await tx.voucher.update({
                 where: { id: voucherId },
@@ -181,7 +172,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             });
         }
 
-        // 8. Create Order
         const order = await tx.order.create({
             data: {
                 buyerId,
@@ -215,7 +205,6 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
             }
         });
 
-        // 9. Clear Cart
         await tx.cartItem.deleteMany({
             where: { cartId: cart.id }
         });

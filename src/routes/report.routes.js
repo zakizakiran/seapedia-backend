@@ -1,20 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const reportController = require('../controllers/report.controller');
-const authenticate = require('../middlewares/auth.middleware');
-const authorize = require('../middlewares/role.middleware');
+const authMiddleware = require('../middlewares/auth.middleware');
+const roleMiddleware = require('../middlewares/role.middleware');
 
-router.use(authenticate);
+router.use(authMiddleware);
 
 router.get(
     '/buyer/spending',
-    authorize('BUYER'),
+    roleMiddleware('BUYER'),
     reportController.getBuyerSpendingReport
 );
 
 router.get(
     '/seller/income',
-    authorize('SELLER'),
+    roleMiddleware('SELLER'),
     reportController.getSellerIncomeReport
 );
 

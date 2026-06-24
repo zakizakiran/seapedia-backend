@@ -1,29 +1,14 @@
-const prisma = require('../config/database');
-const ApiError = require('../utils/apiError');
+const discountService = require('../services/discount.service');
 
 const createVoucher = async (req, res, next) => {
     try {
-        const { code, discountAmount, discountPercent, expiryDate, remainingUsage } = req.body;
+        const voucher = await discountService.createVoucher(req.body);
 
-        if (!code || !expiryDate || remainingUsage === undefined) {
-            throw new ApiError('Missing required fields', 400);
-        }
-
-        if (!discountAmount && !discountPercent) {
-            throw new ApiError('Must provide either discountAmount or discountPercent', 400);
-        }
-
-        const voucher = await prisma.voucher.create({
-            data: {
-                code,
-                discountAmount,
-                discountPercent,
-                expiryDate: new Date(expiryDate),
-                remainingUsage
-            }
+        res.status(201).json({
+            status: 'success',
+            message: 'Voucher created successfully',
+            data: { voucher },
         });
-
-        res.status(201).json({ status: 'success', data: { voucher } });
     } catch (error) {
         next(error);
     }
@@ -31,8 +16,25 @@ const createVoucher = async (req, res, next) => {
 
 const getVouchers = async (req, res, next) => {
     try {
-        const vouchers = await prisma.voucher.findMany();
-        res.status(200).json({ status: 'success', data: { vouchers } });
+        const vouchers = await discountService.getVouchers();
+
+        res.status(200).json({
+            status: 'success',
+            data: { vouchers },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getVoucherById = async (req, res, next) => {
+    try {
+        const voucher = await discountService.getVoucherById(req.params.id);
+
+        res.status(200).json({
+            status: 'success',
+            data: { voucher },
+        });
     } catch (error) {
         next(error);
     }
@@ -40,26 +42,13 @@ const getVouchers = async (req, res, next) => {
 
 const createPromo = async (req, res, next) => {
     try {
-        const { code, discountAmount, discountPercent, expiryDate } = req.body;
+        const promo = await discountService.createPromo(req.body);
 
-        if (!code || !expiryDate) {
-            throw new ApiError('Missing required fields', 400);
-        }
-
-        if (!discountAmount && !discountPercent) {
-            throw new ApiError('Must provide either discountAmount or discountPercent', 400);
-        }
-
-        const promo = await prisma.promo.create({
-            data: {
-                code,
-                discountAmount,
-                discountPercent,
-                expiryDate: new Date(expiryDate)
-            }
+        res.status(201).json({
+            status: 'success',
+            message: 'Promo created successfully',
+            data: { promo },
         });
-
-        res.status(201).json({ status: 'success', data: { promo } });
     } catch (error) {
         next(error);
     }
@@ -67,8 +56,25 @@ const createPromo = async (req, res, next) => {
 
 const getPromos = async (req, res, next) => {
     try {
-        const promos = await prisma.promo.findMany();
-        res.status(200).json({ status: 'success', data: { promos } });
+        const promos = await discountService.getPromos();
+
+        res.status(200).json({
+            status: 'success',
+            data: { promos },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getPromoById = async (req, res, next) => {
+    try {
+        const promo = await discountService.getPromoById(req.params.id);
+
+        res.status(200).json({
+            status: 'success',
+            data: { promo },
+        });
     } catch (error) {
         next(error);
     }
@@ -77,6 +83,8 @@ const getPromos = async (req, res, next) => {
 module.exports = {
     createVoucher,
     getVouchers,
+    getVoucherById,
     createPromo,
-    getPromos
+    getPromos,
+    getPromoById,
 };
