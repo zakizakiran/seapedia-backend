@@ -28,9 +28,11 @@ enum DeliveryMethod {
 
 enum OrderStatus {
   PACKING
+  WAITING_FOR_DRIVER
   DELIVERING
   COMPLETED
   CANCELLED
+  RETURNED
 }
 
 model User {

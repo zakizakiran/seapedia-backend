@@ -75,11 +75,25 @@ const getSellerOrderById = async (req, res, next) => {
     }
 };
 
+const processOrder = async (req, res, next) => {
+    try {
+        const result = await orderService.processOrder(req.user.id, req.params.id);
+        res.status(200).json({
+            success: true,
+            message: 'Order processed successfully',
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createOrder,
     getCheckoutSummary,
     getBuyerOrders,
     getBuyerOrderById,
     getSellerOrders,
-    getSellerOrderById
+    getSellerOrderById,
+    processOrder
 };

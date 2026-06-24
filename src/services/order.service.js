@@ -304,11 +304,49 @@ const getSellerOrderById = async (sellerId, orderId) => {
     return order;
 };
 
+const processOrder = async (sellerId, orderId) => {
+    return await prisma.$transaction(async (tx) => {
+        const store = await tx.store.findUnique({ where: { userId: sellerId } });
+        if (!store) throw ApiError.notFound('Store not found');
+
+        const order = await tx.order.findUnique({
+            where: { id: orderId }
+        });
+
+        if (!order || order.storeId !== store.id) {
+            throw ApiError.notFound('Order not found');
+        }
+
+        if (order.status !== 'PACKING') {
+            throw ApiError.badRequest('Order cannot be processed at this stage');
+        }
+
+        const updatedOrder = await tx.order.update({
+            where: { id: orderId },
+            data: { status: 'WAITING_FOR_DRIVER' },
+            include: {
+                items: true,
+                statusHistory: true
+            }
+        });
+
+        await tx.orderStatusHistory.create({
+            data: {
+                orderId,
+                status: 'WAITING_FOR_DRIVER'
+            }
+        });
+
+        return updatedOrder;
+    });
+};
+
 module.exports = {
     createOrder,
     getBuyerOrders,
     getBuyerOrderById,
     getSellerOrders,
     getSellerOrderById,
-    getCheckoutSummary
+    getCheckoutSummary,
+    processOrder
 };
