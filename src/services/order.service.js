@@ -9,7 +9,7 @@ const DELIVERY_FEES = {
 
 const TAX_RATE = 0.12;
 
-const getCheckoutSummary = async (buyerId, addressId, deliveryMethod) => {
+const getCheckoutSummary = async (buyerId, addressId, deliveryMethod, discountCode) => {
     // Get Cart
     const cart = await prisma.cart.findUnique({
         where: { userId: buyerId },
@@ -36,19 +36,41 @@ const getCheckoutSummary = async (buyerId, addressId, deliveryMethod) => {
         subtotal += item.product.price * item.quantity;
     });
 
+    let discount = 0;
+    if (discountCode) {
+        const voucher = await prisma.voucher.findUnique({ where: { code: discountCode } });
+        const promo = await prisma.promo.findUnique({ where: { code: discountCode } });
+
+        if (voucher) {
+            if (voucher.expiryDate < new Date()) throw ApiError.badRequest('Voucher expired');
+            if (voucher.remainingUsage <= 0) throw ApiError.badRequest('Voucher usage limit reached');
+            if (voucher.discountAmount) discount = voucher.discountAmount;
+            else if (voucher.discountPercent) discount = subtotal * (voucher.discountPercent / 100);
+        } else if (promo) {
+            if (promo.expiryDate < new Date()) throw ApiError.badRequest('Promo expired');
+            if (promo.discountAmount) discount = promo.discountAmount;
+            else if (promo.discountPercent) discount = subtotal * (promo.discountPercent / 100);
+        } else {
+            throw ApiError.badRequest('Invalid discount code');
+        }
+    }
+    if (discount > subtotal) discount = subtotal;
+
     const deliveryFee = DELIVERY_FEES[deliveryMethod];
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + tax + deliveryFee;
+    const discountedSubtotal = subtotal - discount;
+    const tax = discountedSubtotal * TAX_RATE;
+    const total = discountedSubtotal + tax + deliveryFee;
 
     return {
         subtotal,
+        discount,
         deliveryFee,
         tax,
         total
     };
 };
 
-const createOrder = async (buyerId, addressId, deliveryMethod) => {
+const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => {
     return await prisma.$transaction(async (tx) => {
         // 1. Get Cart
         const cart = await tx.cart.findUnique({
@@ -82,9 +104,35 @@ const createOrder = async (buyerId, addressId, deliveryMethod) => {
             subtotal += item.product.price * item.quantity;
         }
 
+        let discount = 0;
+        let voucherId = null;
+        let promoId = null;
+
+        if (discountCode) {
+            const voucher = await tx.voucher.findUnique({ where: { code: discountCode } });
+            const promo = await tx.promo.findUnique({ where: { code: discountCode } });
+
+            if (voucher) {
+                if (voucher.expiryDate < new Date()) throw ApiError.badRequest('Voucher expired');
+                if (voucher.remainingUsage <= 0) throw ApiError.badRequest('Voucher usage limit reached');
+                voucherId = voucher.id;
+                if (voucher.discountAmount) discount = voucher.discountAmount;
+                else if (voucher.discountPercent) discount = subtotal * (voucher.discountPercent / 100);
+            } else if (promo) {
+                if (promo.expiryDate < new Date()) throw ApiError.badRequest('Promo expired');
+                promoId = promo.id;
+                if (promo.discountAmount) discount = promo.discountAmount;
+                else if (promo.discountPercent) discount = subtotal * (promo.discountPercent / 100);
+            } else {
+                throw ApiError.badRequest('Invalid discount code');
+            }
+        }
+        if (discount > subtotal) discount = subtotal;
+
         const deliveryFee = DELIVERY_FEES[deliveryMethod];
-        const tax = subtotal * TAX_RATE;
-        const total = subtotal + tax + deliveryFee;
+        const discountedSubtotal = subtotal - discount;
+        const tax = discountedSubtotal * TAX_RATE;
+        const total = discountedSubtotal + tax + deliveryFee;
 
         // 4. Check Wallet
         const wallet = await tx.wallet.findUnique({
@@ -125,7 +173,15 @@ const createOrder = async (buyerId, addressId, deliveryMethod) => {
             }
         }
 
-        // 7. Create Order
+        // 7. Deduct Voucher Usage
+        if (voucherId) {
+            await tx.voucher.update({
+                where: { id: voucherId },
+                data: { remainingUsage: { decrement: 1 } }
+            });
+        }
+
+        // 8. Create Order
         const order = await tx.order.create({
             data: {
                 buyerId,
@@ -134,8 +190,11 @@ const createOrder = async (buyerId, addressId, deliveryMethod) => {
                 deliveryMethod,
                 deliveryFee,
                 subtotal,
+                discount,
                 tax,
                 total,
+                voucherId,
+                promoId,
                 status: 'PACKING',
                 items: {
                     create: cart.items.map(item => ({
@@ -156,7 +215,7 @@ const createOrder = async (buyerId, addressId, deliveryMethod) => {
             }
         });
 
-        // 8. Clear Cart
+        // 9. Clear Cart
         await tx.cartItem.deleteMany({
             where: { cartId: cart.id }
         });
