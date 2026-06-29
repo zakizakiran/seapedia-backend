@@ -212,6 +212,58 @@ const selectRole = async (userId, role) => {
     };
 };
 
+const addRole = async (userId, role) => {
+    if (!NON_ADMIN_ROLES.includes(role)) {
+        throw ApiError.badRequest(
+            `Invalid role '${role}'. Allowed roles: ${NON_ADMIN_ROLES.join(', ')}`
+        );
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            userRoles: {
+                select: { role: true },
+            },
+        },
+    });
+
+    if (!user) {
+        throw ApiError.notFound('User not found');
+    }
+
+    const roles = formatRoles(user.userRoles);
+
+    if (roles.includes(role)) {
+        throw ApiError.badRequest(`You already have the '${role}' role.`);
+    }
+
+    await prisma.userRole.create({
+        data: {
+            userId,
+            role,
+        },
+    });
+
+    const updatedRoles = [...roles, role];
+    
+    await prisma.user.update({
+        where: { id: userId },
+        data: { activeRole: role },
+    });
+    
+    const accessToken = generateAccessToken({
+        userId: user.id,
+        activeRole: role,
+    });
+
+    return {
+        activeRole: role,
+        roles: updatedRoles,
+        accessToken,
+    };
+};
+
 const refreshAccessToken = async (token) => {
     let decoded;
     try {
@@ -351,6 +403,7 @@ module.exports = {
     register,
     login,
     selectRole,
+    addRole,
     refreshAccessToken,
     logout,
     getProfile,

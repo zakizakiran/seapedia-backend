@@ -56,6 +56,14 @@ const selectRoleValidator = [
         .withMessage(`Role must be one of: ${[...VALID_ROLES, 'ADMIN'].join(', ')}`),
 ];
 
+const addRoleValidator = [
+    body('role')
+        .notEmpty()
+        .withMessage('Role is required')
+        .isIn(VALID_ROLES)
+        .withMessage(`Role must be one of: ${VALID_ROLES.join(', ')}`),
+];
+
 const refreshTokenValidator = [
     body('refreshToken')
         .notEmpty()
@@ -72,6 +80,7 @@ module.exports = {
     registerValidator,
     loginValidator,
     selectRoleValidator,
+    addRoleValidator,
     refreshTokenValidator,
     logoutValidator,
 };

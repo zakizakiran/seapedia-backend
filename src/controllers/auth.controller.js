@@ -50,6 +50,22 @@ const selectRole = async (req, res, next) => {
     }
 };
 
+const addRole = async (req, res, next) => {
+    try {
+        const { role } = req.body;
+
+        const result = await authService.addRole(req.user.id, role);
+
+        res.status(200).json({
+            status: 'success',
+            message: `Role '${role}' added and set as active role`,
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const refreshToken = async (req, res, next) => {
     try {
         const { refreshToken: token } = req.body;
@@ -98,6 +114,7 @@ module.exports = {
     register,
     login,
     selectRole,
+    addRole,
     refreshToken,
     logout,
     getProfile,
