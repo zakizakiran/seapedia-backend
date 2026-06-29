@@ -39,11 +39,16 @@ const getCart = async (userId) => {
 const addOrUpdateItem = async (userId, productId, quantity) => {
     return await prisma.$transaction(async (tx) => {
         const product = await tx.product.findUnique({
-            where: { id: productId }
+            where: { id: productId },
+            include: { store: true }
         });
 
         if (!product) {
             throw ApiError.notFound('Product not found');
+        }
+
+        if (product.store.userId === userId) {
+            throw ApiError.badRequest('Anda tidak dapat membeli produk dari toko Anda sendiri.');
         }
 
         if (product.stock < quantity) {

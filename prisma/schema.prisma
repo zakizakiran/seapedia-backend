@@ -110,6 +110,7 @@ model Product {
   price       Float
   stock       Int      @default(0)
   imageUrl    String?
+  category    String?
   storeId     String
   store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   cartItems   CartItem[]

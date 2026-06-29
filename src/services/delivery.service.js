@@ -1,14 +1,16 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
 
-const getAvailableJobs = async () => {
+const getAvailableJobs = async (driverId) => {
     return await prisma.order.findMany({
         where: {
-            status: 'WAITING_FOR_DRIVER'
+            status: 'WAITING_FOR_DRIVER',
+            buyerId: { not: driverId },
+            store: { userId: { not: driverId } }
         },
         include: {
             store: { select: { name: true } },
-            address: { select: { title: true, fullAddress: true } },
+            address: { select: { title: true, fullAddress: true, recipientName: true, phoneNumber: true } },
         },
         orderBy: { createdAt: 'desc' }
     });
@@ -36,11 +38,20 @@ const getAvailableJobById = async (orderId) => {
 const takeJob = async (driverId, orderId) => {
     return await prisma.$transaction(async (tx) => {
         const order = await tx.order.findUnique({
-            where: { id: orderId }
+            where: { id: orderId },
+            include: { store: true }
         });
 
         if (!order) {
             throw ApiError.notFound('Order not found');
+        }
+
+        if (order.buyerId === driverId) {
+            throw ApiError.badRequest('Anda tidak dapat mengambil pekerjaan pengiriman untuk pesanan Anda sendiri.');
+        }
+
+        if (order.store.userId === driverId) {
+            throw ApiError.badRequest('Anda tidak dapat mengambil pekerjaan pengiriman dari toko Anda sendiri.');
         }
 
         if (order.status !== 'WAITING_FOR_DRIVER') {

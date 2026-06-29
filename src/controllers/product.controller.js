@@ -4,9 +4,9 @@ const getProducts = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
-        const { search, storeId } = req.query;
+        const { search, storeId, category } = req.query;
 
-        const result = await productService.getProducts({ page, limit, search, storeId });
+        const result = await productService.getProducts({ page, limit, search, storeId, category });
 
         res.status(200).json({
             status: 'success',

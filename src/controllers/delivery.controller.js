@@ -2,7 +2,7 @@ const deliveryService = require('../services/delivery.service');
 
 const getAvailableJobs = async (req, res, next) => {
     try {
-        const jobs = await deliveryService.getAvailableJobs();
+        const jobs = await deliveryService.getAvailableJobs(req.user.id);
         res.status(200).json({
             status: 'success',
             data: { jobs }

@@ -367,22 +367,37 @@ const getProfile = async (userId) => {
 
     if (roles.includes('BUYER')) {
         const wallet = await prisma.wallet.findUnique({ where: { userId } });
+        const buyerOrders = await prisma.order.findMany({
+            where: { buyerId: userId, status: 'COMPLETED' }
+        });
+        const totalSpending = buyerOrders.reduce((sum, order) => sum + order.total, 0);
         financialSummary.buyer = {
             walletBalance: wallet ? wallet.balance : 0,     
-            totalSpending: 0,     
+            totalSpending,     
         };
     }
 
     if (roles.includes('SELLER')) {
+        let totalIncome = 0;
+        if (user.store) {
+            const storeOrders = await prisma.order.findMany({
+                where: { storeId: user.store.id, status: 'COMPLETED' }
+            });
+            totalIncome = storeOrders.reduce((sum, order) => sum + order.subtotal, 0);
+        }
         financialSummary.seller = {
-            totalIncome: 0,       
+            totalIncome,       
             store: user.store || null,
         };
     }
 
     if (roles.includes('DRIVER')) {
+        const completedJobs = await prisma.deliveryJob.findMany({
+            where: { driverId: userId, status: 'COMPLETED' }
+        });
+        const totalEarnings = completedJobs.reduce((sum, job) => sum + job.earnings, 0);
         financialSummary.driver = {
-            totalEarnings: 0,     
+            totalEarnings,     
         };
     }
 

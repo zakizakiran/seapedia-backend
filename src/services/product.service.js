@@ -2,7 +2,7 @@ const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
 const { escapeHtml } = require('../utils/sanitize.utils');
 
-const getProducts = async ({ page = 1, limit = 12, search, storeId }) => {
+const getProducts = async ({ page = 1, limit = 12, search, storeId, category }) => {
     const skip = (page - 1) * limit;
 
     const where = {};
@@ -16,6 +16,10 @@ const getProducts = async ({ page = 1, limit = 12, search, storeId }) => {
 
     if (storeId) {
         where.storeId = storeId;
+    }
+
+    if (category && category !== 'All') {
+        where.category = category;
     }
 
     const [products, total] = await Promise.all([
@@ -129,6 +133,7 @@ const createProduct = async (userId, data) => {
             price: data.price,
             stock: data.stock,
             imageUrl: data.imageUrl,
+            category: data.category,
             storeId: store.id,
         },
     });
@@ -168,6 +173,7 @@ const updateProduct = async (userId, productId, data) => {
             price: data.price !== undefined ? data.price : product.price,
             stock: data.stock !== undefined ? data.stock : product.stock,
             imageUrl: data.imageUrl !== undefined ? data.imageUrl : product.imageUrl,
+            category: data.category !== undefined ? data.category : product.category,
         },
     });
 
