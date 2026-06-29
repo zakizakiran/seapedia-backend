@@ -314,8 +314,9 @@ const getProfile = async (userId) => {
     const financialSummary = {};
 
     if (roles.includes('BUYER')) {
+        const wallet = await prisma.wallet.findUnique({ where: { userId } });
         financialSummary.buyer = {
-            walletBalance: 0,     
+            walletBalance: wallet ? wallet.balance : 0,     
             totalSpending: 0,     
         };
     }

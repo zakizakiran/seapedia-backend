@@ -214,7 +214,7 @@ const createOrder = async (buyerId, addressId, deliveryMethod, discountCode) => 
         });
 
         return order;
-    });
+    }, { maxWait: 15000, timeout: 30000 });
 };
 
 const getBuyerOrders = async (buyerId) => {
@@ -327,7 +327,7 @@ const processOrder = async (sellerId, orderId) => {
         });
 
         return updatedOrder;
-    });
+    }, { maxWait: 15000, timeout: 30000 });
 };
 
 module.exports = {

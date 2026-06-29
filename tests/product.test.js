@@ -12,17 +12,7 @@ describe('Product API Endpoints', () => {
     let createdProductId;
 
     beforeAll(async () => {
-        
-        const product = await prisma.product.findFirst({
-            include: { store: true },
-        });
-
-        if (product) {
-            dummyProductId = product.id;
-            dummyStoreId = product.storeId;
-        }
-
-
+        // Cleanup previous potential test data
         await prisma.product.deleteMany({
             where: { store: { user: { email: 'seller-product@seapedia.test' } } }
         }).catch(() => {});
@@ -33,6 +23,7 @@ describe('Product API Endpoints', () => {
             where: { email: 'seller-product@seapedia.test' }
         }).catch(() => {});
 
+        // Setup seller
         const resSeller = await request(app).post('/api/auth/register').send({
             email: 'seller-product@seapedia.test',
             password: 'Password123!',
@@ -47,10 +38,23 @@ describe('Product API Endpoints', () => {
             .send({ role: 'SELLER' });
         sellerToken = selRes.body.data.accessToken;
 
+        // Setup store
         const storeRes = await request(app).post('/api/stores/seller')
             .set('Authorization', `Bearer ${sellerToken}`)
             .send({ name: 'Seller Product Test Store' });
         sellerStoreId = storeRes.body.data.store.id;
+
+        // Create a dummy product for GET tests
+        const dummyProductRes = await request(app).post('/api/products/seller')
+            .set('Authorization', `Bearer ${sellerToken}`)
+            .send({
+                name: 'Dummy Product For Get',
+                description: 'Dummy',
+                price: 10000,
+                stock: 10,
+            });
+        dummyProductId = dummyProductRes.body.data.product.id;
+        dummyStoreId = sellerStoreId;
     });
 
     afterAll(async () => {
@@ -127,7 +131,8 @@ describe('Product API Endpoints', () => {
             .set('Authorization', `Bearer ${sellerToken}`);
 
         expect(res.statusCode).toEqual(200);
-        expect(res.body.data.products.length).toBe(0);
+        // Expect 1 because we created a dummy product in beforeAll
+        expect(res.body.data.products.length).toBe(1);
     });
 
     it('POST /api/products/seller - should create a new product', async () => {
@@ -155,8 +160,13 @@ describe('Product API Endpoints', () => {
             .set('Authorization', `Bearer ${sellerToken}`);
 
         expect(res.statusCode).toEqual(200);
-        expect(res.body.data.products.length).toBe(1);
-        expect(res.body.data.products[0].id).toBe(createdProductId);
+        // Expect 2 because we created a dummy product in beforeAll + the new one
+        expect(res.body.data.products.length).toBe(2);
+        
+        // Find the newly created one to verify
+        const newlyCreated = res.body.data.products.find(p => p.id === createdProductId);
+        expect(newlyCreated).toBeDefined();
+        expect(newlyCreated.id).toBe(createdProductId);
     });
 
     it('PUT /api/products/seller/:id - should update product', async () => {
