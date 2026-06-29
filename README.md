@@ -69,7 +69,8 @@ JWT_REFRESH_EXPIRATION=7d
 BCRYPT_SALT_ROUNDS=12
 ```
 
-**Catatan**: 
+**Catatan**:
+
 - Ganti `username` dan `password` dengan kredensial PostgreSQL Anda
 - Ganti `your_access_token_secret_key_here` dan `your_refresh_token_secret_key_here` dengan secret key yang aman
 
@@ -131,13 +132,13 @@ SEAPEDIA memiliki **4 role akun**: `ADMIN`, `SELLER`, `BUYER`, `DRIVER`.
 
 ### Demo Accounts
 
-| Email | Password | Roles | Active Role |
-|-------|----------|-------|-------------|
-| admin@seapedia.com | Admin@1234 | ADMIN | ADMIN (otomatis) |
-| demo@seapedia.com | User@1234 | BUYER, SELLER | — (wajib pilih) |
-| seller@seapedia.com | Seller@1234 | SELLER | SELLER (otomatis) |
-| driver@seapedia.com | Driver@1234 | DRIVER | DRIVER (otomatis) |
-| buyer@seapedia.com | Buyer@1234 | BUYER | BUYER (otomatis) |
+| Email               | Password    | Roles         | Active Role       |
+| ------------------- | ----------- | ------------- | ----------------- |
+| admin@seapedia.com  | Admin@1234  | ADMIN         | ADMIN (otomatis)  |
+| demo@seapedia.com   | User@1234   | BUYER, SELLER | — (wajib pilih)   |
+| seller@seapedia.com | Seller@1234 | SELLER        | SELLER (otomatis) |
+| driver@seapedia.com | Driver@1234 | DRIVER        | DRIVER (otomatis) |
+| buyer@seapedia.com  | Buyer@1234  | BUYER         | BUYER (otomatis)  |
 
 ## 📚 API Documentation
 
@@ -149,51 +150,51 @@ http://localhost:8000/api
 
 ### Endpoints Overview
 
-| Category | Endpoint | Method | Auth | Description |
-|----------|----------|--------|------|-------------|
-| **General** | `/health` | GET | ❌ | Check API health status |
-| **Authentication** | `/auth/register` | POST | ❌ | Register new user dengan multi-role |
-| | `/auth/login` | POST | ❌ | User login |
-| | `/auth/select-role` | POST | ✅ | Pilih active role |
-| | `/auth/refresh-token` | POST | ❌ | Refresh access token |
-| | `/auth/logout` | DELETE | ✅ | User logout |
-| | `/auth/profile` | GET | ✅ | Get user profile + roles + active role + financial summary |
-| **Store (Seller)** | `/stores` | POST | ✅ (SELLER) | Buat profil toko (maksimal 1 toko per seller) |
-| | `/stores` | PUT | ✅ (SELLER) | Update nama dan deskripsi toko |
-| | `/stores/my-store` | GET | ✅ (SELLER) | Tarik informasi toko milik seller |
-| **Products** | `/products` | GET | ❌ | Public product listing (search, filter, pagination) |
-| | `/products/:id` | GET | ❌ | Public product detail dengan info toko |
-| | `/products/seller` | POST | ✅ (SELLER) | Tambah produk ke toko (hanya jika sudah punya toko) |
-| | `/products/seller/:id` | PUT | ✅ (SELLER) | Update produk (hanya milik seller tersebut) |
-| | `/products/seller/:id` | DELETE | ✅ (SELLER) | Hapus produk |
-| | `/products/seller/my-products` | GET | ✅ (SELLER) | List semua produk khusus milik toko seller tersebut |
-| **Reviews** | `/reviews` | GET | ❌ | List application reviews (sort, pagination) |
-| | `/reviews` | POST | ❌ | Submit application review (guest atau logged-in) |
-| **Wallets** | `/wallets/my-wallet` | GET | ✅ (BUYER) | Lihat balance dan riwayat transaksi dompet |
-| | `/wallets/top-up` | POST | ✅ (BUYER) | Dummy top-up balance wallet |
-| **Addresses** | `/addresses` | POST | ✅ (BUYER) | Tambah alamat pengiriman baru |
-| | `/addresses` | GET | ✅ (BUYER) | List semua alamat milik buyer |
-| | `/addresses/:id` | PUT | ✅ (BUYER) | Update alamat |
-| | `/addresses/:id` | DELETE | ✅ (BUYER) | Hapus alamat |
-| | `/addresses/:id/default` | PATCH | ✅ (BUYER) | Jadikan alamat sebagai default utama |
-| **Carts** | `/carts` | GET | ✅ (BUYER) | Lihat isi keranjang dan subtotal |
-| | `/carts/items` | POST | ✅ (BUYER) | Tambah produk atau update kuantitas di keranjang |
-| | `/carts/items/:productId` | DELETE | ✅ (BUYER) | Hapus produk tertentu dari keranjang |
-| **Orders** | `/orders/summary` | POST | ✅ (BUYER) | Dapatkan rincian harga sebelum konfirmasi checkout |
-| | `/orders` | POST | ✅ (BUYER) | Proses checkout dan buat pesanan baru |
-| | `/orders/buyer` | GET | ✅ (BUYER) | Lihat daftar pesanan yang pernah dibuat buyer |
-| | `/orders/buyer/:id` | GET | ✅ (BUYER) | Lihat detail suatu pesanan buyer |
-| | `/orders/seller` | GET | ✅ (SELLER) | Lihat daftar pesanan masuk ke toko seller |
-| | `/orders/seller/:id` | GET | ✅ (SELLER) | Lihat detail pesanan yang masuk ke toko seller |
-| | `/orders/seller/:id/process` | PATCH | ✅ (SELLER) | Proses status order dari PACKING ke WAITING_FOR_DRIVER |
-| **Discounts** | `/discounts/vouchers` | POST | ✅ (ADMIN) | Buat voucher diskon |
-| | `/discounts/vouchers` | GET | ✅ (ADMIN) | List semua voucher diskon |
-| | `/discounts/vouchers/:id` | GET | ✅ (ADMIN) | Detail voucher diskon |
-| | `/discounts/promos` | POST | ✅ (ADMIN) | Buat promo diskon |
-| | `/discounts/promos` | GET | ✅ (ADMIN) | List semua promo diskon |
-| | `/discounts/promos/:id` | GET | ✅ (ADMIN) | Detail promo diskon |
-| **Reports** | `/reports/buyer/spending` | GET | ✅ (BUYER) | Laporan total pengeluaran buyer |
-| | `/reports/seller/income` | GET | ✅ (SELLER) | Laporan total pemasukan seller |
+| Category           | Endpoint                       | Method | Auth        | Description                                                |
+| ------------------ | ------------------------------ | ------ | ----------- | ---------------------------------------------------------- |
+| **General**        | `/health`                      | GET    | ❌          | Check API health status                                    |
+| **Authentication** | `/auth/register`               | POST   | ❌          | Register new user dengan multi-role                        |
+|                    | `/auth/login`                  | POST   | ❌          | User login                                                 |
+|                    | `/auth/select-role`            | POST   | ✅          | Pilih active role                                          |
+|                    | `/auth/refresh-token`          | POST   | ❌          | Refresh access token                                       |
+|                    | `/auth/logout`                 | DELETE | ✅          | User logout                                                |
+|                    | `/auth/profile`                | GET    | ✅          | Get user profile + roles + active role + financial summary |
+| **Store (Seller)** | `/stores`                      | POST   | ✅ (SELLER) | Buat profil toko (maksimal 1 toko per seller)              |
+|                    | `/stores`                      | PUT    | ✅ (SELLER) | Update nama dan deskripsi toko                             |
+|                    | `/stores/my-store`             | GET    | ✅ (SELLER) | Tarik informasi toko milik seller                          |
+| **Products**       | `/products`                    | GET    | ❌          | Public product listing (search, filter, pagination)        |
+|                    | `/products/:id`                | GET    | ❌          | Public product detail dengan info toko                     |
+|                    | `/products/seller`             | POST   | ✅ (SELLER) | Tambah produk ke toko (hanya jika sudah punya toko)        |
+|                    | `/products/seller/:id`         | PUT    | ✅ (SELLER) | Update produk (hanya milik seller tersebut)                |
+|                    | `/products/seller/:id`         | DELETE | ✅ (SELLER) | Hapus produk                                               |
+|                    | `/products/seller/my-products` | GET    | ✅ (SELLER) | List semua produk khusus milik toko seller tersebut        |
+| **Reviews**        | `/reviews`                     | GET    | ❌          | List application reviews (sort, pagination)                |
+|                    | `/reviews`                     | POST   | ❌          | Submit application review (guest atau logged-in)           |
+| **Wallets**        | `/wallets/my-wallet`           | GET    | ✅ (BUYER)  | Lihat balance dan riwayat transaksi dompet                 |
+|                    | `/wallets/top-up`              | POST   | ✅ (BUYER)  | Dummy top-up balance wallet                                |
+| **Addresses**      | `/addresses`                   | POST   | ✅ (BUYER)  | Tambah alamat pengiriman baru                              |
+|                    | `/addresses`                   | GET    | ✅ (BUYER)  | List semua alamat milik buyer                              |
+|                    | `/addresses/:id`               | PUT    | ✅ (BUYER)  | Update alamat                                              |
+|                    | `/addresses/:id`               | DELETE | ✅ (BUYER)  | Hapus alamat                                               |
+|                    | `/addresses/:id/default`       | PATCH  | ✅ (BUYER)  | Jadikan alamat sebagai default utama                       |
+| **Carts**          | `/carts`                       | GET    | ✅ (BUYER)  | Lihat isi keranjang dan subtotal                           |
+|                    | `/carts/items`                 | POST   | ✅ (BUYER)  | Tambah produk atau update kuantitas di keranjang           |
+|                    | `/carts/items/:productId`      | DELETE | ✅ (BUYER)  | Hapus produk tertentu dari keranjang                       |
+| **Orders**         | `/orders/summary`              | POST   | ✅ (BUYER)  | Dapatkan rincian harga sebelum konfirmasi checkout         |
+|                    | `/orders`                      | POST   | ✅ (BUYER)  | Proses checkout dan buat pesanan baru                      |
+|                    | `/orders/buyer`                | GET    | ✅ (BUYER)  | Lihat daftar pesanan yang pernah dibuat buyer              |
+|                    | `/orders/buyer/:id`            | GET    | ✅ (BUYER)  | Lihat detail suatu pesanan buyer                           |
+|                    | `/orders/seller`               | GET    | ✅ (SELLER) | Lihat daftar pesanan masuk ke toko seller                  |
+|                    | `/orders/seller/:id`           | GET    | ✅ (SELLER) | Lihat detail pesanan yang masuk ke toko seller             |
+|                    | `/orders/seller/:id/process`   | PATCH  | ✅ (SELLER) | Proses status order dari PACKING ke WAITING_FOR_DRIVER     |
+| **Discounts**      | `/discounts/vouchers`          | POST   | ✅ (ADMIN)  | Buat voucher diskon                                        |
+|                    | `/discounts/vouchers`          | GET    | ✅ (ADMIN)  | List semua voucher diskon                                  |
+|                    | `/discounts/vouchers/:id`      | GET    | ✅ (ADMIN)  | Detail voucher diskon                                      |
+|                    | `/discounts/promos`            | POST   | ✅ (ADMIN)  | Buat promo diskon                                          |
+|                    | `/discounts/promos`            | GET    | ✅ (ADMIN)  | List semua promo diskon                                    |
+|                    | `/discounts/promos/:id`        | GET    | ✅ (ADMIN)  | Detail promo diskon                                        |
+| **Reports**        | `/reports/buyer/spending`      | GET    | ✅ (BUYER)  | Laporan total pengeluaran buyer                            |
+|                    | `/reports/seller/income`       | GET    | ✅ (SELLER) | Laporan total pemasukan seller                             |
 
 ### Endpoints
 
@@ -206,6 +207,7 @@ GET /health
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -222,6 +224,7 @@ POST /auth/register
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -234,6 +237,7 @@ POST /auth/register
 > **Catatan**: Field `roles` adalah array. Role yang tersedia untuk registrasi: `SELLER`, `BUYER`, `DRIVER`. Role `ADMIN` tidak bisa dipilih saat registrasi.
 
 **Response Success (201) — Multi-role:**
+
 ```json
 {
   "status": "success",
@@ -254,6 +258,7 @@ POST /auth/register
 ```
 
 **Response Success (201) — Single-role:**
+
 ```json
 {
   "status": "success",
@@ -280,6 +285,7 @@ POST /auth/login
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -288,6 +294,7 @@ POST /auth/login
 ```
 
 **Response Success (200) — Multi-role (memerlukan role selection):**
+
 ```json
 {
   "status": "success",
@@ -311,6 +318,7 @@ POST /auth/login
 ```
 
 **Response Success (200) — Single-role / Admin:**
+
 ```json
 {
   "status": "success",
@@ -342,11 +350,13 @@ POST /auth/select-role
 ```
 
 **Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "role": "BUYER"
@@ -354,6 +364,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -369,6 +380,7 @@ Authorization: Bearer <access_token>
 > **Catatan**: Endpoint ini mengembalikan access token **baru** yang mengandung `activeRole` di payload JWT. Gunakan token baru ini untuk request selanjutnya.
 
 **Response Error (400) — Role tidak dimiliki:**
+
 ```json
 {
   "status": "fail",
@@ -383,6 +395,7 @@ POST /auth/refresh-token
 ```
 
 **Request Body:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -390,6 +403,7 @@ POST /auth/refresh-token
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -408,11 +422,13 @@ DELETE /auth/logout
 ```
 
 **Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Request Body:**
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -420,6 +436,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -434,11 +451,13 @@ GET /auth/profile
 ```
 
 **Headers:**
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -482,14 +501,15 @@ GET /products?page=1&limit=12&search=udang&storeId=cuid...
 
 **Query Parameters:**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| page | number | 1 | Halaman pagination |
-| limit | number | 12 | Jumlah produk per halaman |
-| search | string | — | Cari berdasarkan nama/deskripsi produk |
-| storeId | string | — | Filter produk berdasarkan toko |
+| Parameter | Type   | Default | Description                            |
+| --------- | ------ | ------- | -------------------------------------- |
+| page      | number | 1       | Halaman pagination                     |
+| limit     | number | 12      | Jumlah produk per halaman              |
+| search    | string | —       | Cari berdasarkan nama/deskripsi produk |
+| storeId   | string | —       | Filter produk berdasarkan toko         |
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -528,6 +548,7 @@ GET /products/:id
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -565,13 +586,14 @@ GET /reviews?page=1&limit=10&sort=newest
 
 **Query Parameters:**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| page | number | 1 | Halaman pagination |
-| limit | number | 10 | Jumlah review per halaman |
-| sort | string | newest | Urutan: `newest`, `highest`, `lowest` |
+| Parameter | Type   | Default | Description                           |
+| --------- | ------ | ------- | ------------------------------------- |
+| page      | number | 1       | Halaman pagination                    |
+| limit     | number | 10      | Jumlah review per halaman             |
+| sort      | string | newest  | Urutan: `newest`, `highest`, `lowest` |
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -606,6 +628,7 @@ POST /reviews
 ```
 
 **Request Body:**
+
 ```json
 {
   "reviewerName": "Nama Reviewer",
@@ -617,6 +640,7 @@ POST /reviews
 > **Catatan**: Jika request menyertakan header `Authorization: Bearer <token>`, review akan dikaitkan dengan userId user yang login. Jika tidak, review dicatat sebagai guest review.
 
 **Response Success (201):**
+
 ```json
 {
   "status": "success",
@@ -643,6 +667,7 @@ POST /stores
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Toko Laut Nusantara",
@@ -651,6 +676,7 @@ POST /stores
 ```
 
 **Response Success (201):**
+
 ```json
 {
   "status": "success",
@@ -670,6 +696,7 @@ PUT /stores
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Toko Laut Nusantara Baru",
@@ -684,6 +711,7 @@ GET /stores/my-store
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -704,6 +732,7 @@ POST /products/seller
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Udang Tiger",
@@ -715,6 +744,7 @@ POST /products/seller
 ```
 
 **Response Success (201):**
+
 ```json
 {
   "status": "success",
@@ -735,6 +765,7 @@ PUT /products/seller/:id
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Udang Tiger Premium",
@@ -764,6 +795,7 @@ GET /wallets/my-wallet
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -790,6 +822,7 @@ POST /wallets/top-up
 ```
 
 **Request Body:**
+
 ```json
 {
   "amount": 150000
@@ -797,6 +830,7 @@ POST /wallets/top-up
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -816,6 +850,7 @@ POST /addresses
 ```
 
 **Request Body:**
+
 ```json
 {
   "title": "Rumah",
@@ -832,6 +867,7 @@ GET /addresses
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -857,6 +893,7 @@ GET /carts
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -887,6 +924,7 @@ POST /carts/items
 ```
 
 **Request Body:**
+
 ```json
 {
   "productId": "cuid...",
@@ -894,7 +932,7 @@ POST /carts/items
 }
 ```
 
-> **Catatan**: Jika produk berasal dari toko yang berbeda dengan isi cart saat ini, request akan ditolak (400 Bad Request) untuk menjaga aturan *Single-Store Checkout*.
+> **Catatan**: Jika produk berasal dari toko yang berbeda dengan isi cart saat ini, request akan ditolak (400 Bad Request) untuk menjaga aturan _Single-Store Checkout_.
 
 #### 10. Orders (Buyer & Seller)
 
@@ -905,6 +943,7 @@ POST /orders/summary
 ```
 
 **Request Body:**
+
 ```json
 {
   "addressId": "cuid...",
@@ -913,6 +952,7 @@ POST /orders/summary
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -932,6 +972,7 @@ POST /orders
 ```
 
 **Request Body:**
+
 ```json
 {
   "addressId": "cuid...",
@@ -940,6 +981,7 @@ POST /orders
 ```
 
 **Response Success (201):**
+
 ```json
 {
   "status": "success",
@@ -962,6 +1004,7 @@ PATCH /orders/seller/:id/process
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -982,6 +1025,7 @@ POST /discounts/vouchers
 ```
 
 **Request Body:**
+
 ```json
 {
   "code": "SUMMER10K",
@@ -992,6 +1036,7 @@ POST /discounts/vouchers
 ```
 
 **Response Success (201):**
+
 ```json
 {
   "status": "success",
@@ -1015,6 +1060,7 @@ GET /reports/buyer/spending
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -1038,6 +1084,7 @@ GET /reports/seller/income
 ```
 
 **Response Success (200):**
+
 ```json
 {
   "status": "success",
@@ -1066,19 +1113,30 @@ Endpoint privat dilindungi oleh 2 lapisan middleware:
 ### Contoh Penggunaan
 
 ```javascript
-const authenticate = require('./middlewares/auth.middleware');
-const authorize = require('./middlewares/role.middleware');
+const authenticate = require("./middlewares/auth.middleware");
+const authorize = require("./middlewares/role.middleware");
 
 // Hanya user dengan active role SELLER yang bisa akses
-router.get('/seller/dashboard', authenticate, authorize('SELLER'), sellerController.dashboard);
+router.get(
+  "/seller/dashboard",
+  authenticate,
+  authorize("SELLER"),
+  sellerController.dashboard,
+);
 
 // ADMIN atau SELLER bisa akses
-router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productController.list);
+router.get(
+  "/products",
+  authenticate,
+  authorize("ADMIN", "SELLER"),
+  productController.list,
+);
 ```
 
 ### Error Responses
 
 **401 — Belum Login:**
+
 ```json
 {
   "status": "fail",
@@ -1087,6 +1145,7 @@ router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productContr
 ```
 
 **403 — Belum Pilih Active Role:**
+
 ```json
 {
   "status": "fail",
@@ -1095,6 +1154,7 @@ router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productContr
 ```
 
 **403 — Active Role Tidak Diizinkan:**
+
 ```json
 {
   "status": "fail",
@@ -1108,7 +1168,8 @@ router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productContr
 
 **Error**: `EADDRINUSE: address already in use`
 
-**Solution**: 
+**Solution**:
+
 - Ganti PORT di file `.env`
 - Atau matikan aplikasi yang menggunakan port tersebut
 
@@ -1117,6 +1178,7 @@ router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productContr
 **Error**: `Can't reach database server`
 
 **Solution**:
+
 - Pastikan PostgreSQL server berjalan
 - Periksa konfigurasi DATABASE_URL di `.env`
 - Pastikan credentials database benar
@@ -1126,21 +1188,95 @@ router.get('/products', authenticate, authorize('ADMIN', 'SELLER'), productContr
 **Error**: `Cannot find module '@prisma/client'`
 
 **Solution**:
+
 ```bash
 npx prisma generate
 ```
 
 ## 📝 Environment Variables Reference
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| DATABASE_URL | PostgreSQL connection string | postgres://user:pass@localhost:5432/seapedia_db |
-| PORT | Server port | 8000 |
-| NODE_ENV | Environment mode | development |
-| JWT_ACCESS_SECRET | Secret key untuk access token | your_access_secret_here |
-| JWT_REFRESH_SECRET | Secret key untuk refresh token | your_refresh_secret_here |
-| JWT_ACCESS_EXPIRATION | Access token expiration | 15m |
-| JWT_REFRESH_EXPIRATION | Refresh token expiration | 7d |
-| BCRYPT_SALT_ROUNDS | Salt rounds for bcrypt hashing | 12 |
+| Variable               | Description                    | Example                                         |
+| ---------------------- | ------------------------------ | ----------------------------------------------- |
+| DATABASE_URL           | PostgreSQL connection string   | postgres://user:pass@localhost:5432/seapedia_db |
+| PORT                   | Server port                    | 8000                                            |
+| NODE_ENV               | Environment mode               | development                                     |
+| JWT_ACCESS_SECRET      | Secret key untuk access token  | your_access_secret_here                         |
+| JWT_REFRESH_SECRET     | Secret key untuk refresh token | your_refresh_secret_here                        |
+| JWT_ACCESS_EXPIRATION  | Access token expiration        | 15m                                             |
+| JWT_REFRESH_EXPIRATION | Refresh token expiration       | 7d                                              |
+| BCRYPT_SALT_ROUNDS     | Salt rounds for bcrypt hashing | 12                                              |
 
-**Happy Coding! 🚀**
+## 📖 Business Rules & Logics
+
+### 1. Behavior Single-Store Checkout
+
+Sistem keranjang (Cart) dirancang dengan model **Single-Store Checkout** yang artinya:
+
+- Pembeli (Buyer) hanya bisa memiliki produk dari **SATU toko (Store) yang sama** di dalam keranjang belanja pada satu waktu.
+- Jika keranjang sudah berisi produk dari Toko A, lalu Buyer mencoba memasukkan produk dari Toko B, maka sistem akan menolak (Return 400 Bad Request) dan menyarankan agar keranjang dikosongkan/di-checkout terlebih dahulu.
+- Aturan ini diterapkan agar ongkos kirim (Delivery Fee) dan penugasan Driver (Delivery Job) bisa dilakukan dalam rute tunggal dari 1 titik asal ke titik tujuan.
+
+### 2. Aturan Kombinasi Diskon & Perhitungan Pajak (PPN 12%)
+
+Saat Checkout (baik di endpoint `/orders/summary` maupun `/orders`), perhitungannya mematuhi tata urutan berikut:
+
+1. **Subtotal**: Jumlah seluruh harga produk dikali kuantitasnya di keranjang.
+2. **Diskon**:
+   - Jika ada **Promo** (Otomatis dipakai jika kondisi terpenuhi): Memotong persentase % dari Subtotal.
+   - Jika ada **Voucher** (Manual input kode): Memotong persentase % atau nominal flat dari _(Subtotal - Potongan Promo)_.
+   - **Limitasi**: Promo dan Voucher **BISA** dikombinasikan (ditumpuk).
+3. **Pajak (Tax 12%)**:
+   - Pajak sebesar 12% dihitung dari **Subtotal SETELAH DIPOTONG Diskon**. (Contoh: `0.12 * (Subtotal - Promo Discount - Voucher Discount)`)
+4. **Delivery Fee**: Biaya pengiriman berdasarkan tipe pengiriman (`INSTANT`: Rp 50.000, `NEXT_DAY`: Rp 20.000, `REGULAR`: Rp 15.000).
+5. **Total Biaya**: `(Subtotal - Diskon Promo - Diskon Voucher) + Pajak (12%) + Delivery Fee`
+
+### 3. Aturan Driver Earning (Penghasilan Driver)
+
+- Order yang selesai dikirim (Driver menekan `status: COMPLETED` pada endpoint Delivery), maka **100% Delivery Fee** dari pesanan tersebut akan langsung ditambahkan secara utuh ke saldo Wallet Driver. Seapedia tidak memotong komisi dari Delivery Fee.
+
+### 4. Overdue SLA & Simulasi Waktu
+
+Setiap pesanan yang masuk ke proses `PACKING`, `WAITING_FOR_DRIVER`, dan `DELIVERING` memiliki batas waktu (SLA / Service Level Agreement) otomatisasi batal:
+
+- **INSTANT**: 1 Hari (1x24 Jam)
+- **NEXT_DAY**: 2 Hari (2x24 Jam)
+- **REGULAR**: 7 Hari (7x24 Jam)
+
+Jika lewat batas tersebut, admin dapat memicu `POST /api/admin/overdue/process`:
+
+- Status order otomatis berubah menjadi **RETURNED**.
+- Saldo (Total Biaya) akan **dikembalikan 100% (Refund) ke Wallet Buyer**.
+- Stok barang akan kembali ke Toko.
+- Tugas _driver_ (jika ada) akan berstatus `COMPLETED` tanpa membatalkan akun driver.
+
+**Simulasi Waktu (Time Simulation)**:
+Karena menunggu SLA untuk pengetesan terlalu lama, Backend menyediakan utility in-memory time offset pada endpoint `/api/admin/simulate-day`. Admin dapat menambahkan "+3 Hari" ke memori server. Hal ini akan menggeser jarum jam internal Seapedia tanpa mengubah waktu sistem PC/Server betulan, sehingga _cron job/overdue processor_ mengira batas SLA telah lewat.
+
+## 🛡️ Security Measures
+
+Aplikasi SEAPEDIA dikeraskan (Hardened) terhadap berbagai kerentanan keamanan:
+
+1. **SQL Injection Prevention**: Seluruh akses database dieksekusi melalui **Prisma ORM** yang mengabstraksi query dan memisahkan paramerization. Prisma melarang query text secara langsung (tanpa _raw_) yang menjadi celah utama SQL Injection.
+2. **Cross-Site Scripting (XSS) Prevention**: Semua payload inputan yang ditampilkan ke ranah publik (misal: Komentar di Review Aplikasi, Nama Produk, Deskripsi Produk, Nama Toko, Deskripsi Toko) di-escape secara eksplisit menggunakan custom `escapeHtml` utility sebelum disimpan ke database, menghilangkan efek perenderan tag `<script>`.
+3. **Input Validation**: Seluruh interaksi API tervalidasi sangat ketat di level Router menggunakan ekosistem `express-validator` sebelum menyentuh Controller. Contoh: Harga tidak boleh negatif, email harus valid, rating wajib 1-5.
+4. **Session Management (Logout & Revocation)**: Logout tidak hanya menghapus JWT token dari _client-side_, tetapi menghapus baris `refreshToken` di tabel database yang membuat upaya login dari device lama tidak akan bisa diperbarui (Revoked).
+5. **RBAC Hardening**: Middleware `authorize('ROLE')` memastikan perizinan peran tidak memanipulasi _query_. Active Role dilampirkan langsung secara _cryptographically-signed_ dalam payload _Access Token_.
+6. **Resource Ownership Isolation**: Buyer A tidak akan pernah bisa mengakses riwayat Order Buyer B (diatur di `order.service.js`), begitu pula Seller tidak dapat menghapus Product dari etalase Seller lain.
+
+## 🧪 E2E Demo & Testing Guide
+
+Untuk mendemonstrasikan keseluruhan ekosistem Seapedia, lakukan flow berikut menggunakan klien sejenis Postman/Thunder Client:
+
+1. **Jalankan Uji Otomatis (100% Pass)**:
+   ```bash
+   npm run test
+   ```
+2. **Jalankan Seeder (Demo Data)**:
+   ```bash
+   npx prisma db seed
+   ```
+3. **Mulai Perjalanan sebagai Buyer**: Login dengan `buyer@seapedia.com`, catat token. Buat Alamat `POST /addresses`, Top-up dompet `POST /wallets/top-up`.
+4. **Checkout Single-Store**: Tambahkan produk demo ke keranjang `POST /carts/items`, dan lakukan Checkout `POST /orders` menggunakan opsi INSTANT.
+5. **Proses sebagai Seller**: Login dengan `seller@seapedia.com`, panggil `PATCH /orders/seller/:id/process` agar status menjadi `WAITING_FOR_DRIVER`.
+6. **Ekspedisi sebagai Driver**: Login dengan `driver@seapedia.com`, cari job `GET /deliveries/available`, ambil job `POST /deliveries/:id/take`, dan ubah status hingga `COMPLETED`. Pastikan Wallet driver Anda sekarang berisi Rp 50.000.
+7. **Simulasi Overdue Admin**: Login dengan `admin@seapedia.com`. Lakukan lompatan waktu 3 hari kedepan menggunakan `POST /api/admin/simulate-day`. Kemudian jalankan `POST /api/admin/overdue/process`. Periksa endpoint Dashboard untuk membuktikan ada order yang RETURNED dan direfund.
