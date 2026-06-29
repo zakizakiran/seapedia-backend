@@ -35,6 +35,11 @@ enum OrderStatus {
   RETURNED
 }
 
+enum DeliveryJobStatus {
+  TAKEN
+  COMPLETED
+}
+
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
@@ -52,6 +57,7 @@ model User {
   addresses     Address[]
   cart          Cart?
   orders        Order[]        @relation("BuyerOrders")
+  driverJobs    DeliveryJob[]  @relation("DriverJobs")
 
   @@map("users")
 }
@@ -221,6 +227,7 @@ model Order {
   status         OrderStatus     @default(PACKING)
   items          OrderItem[]
   statusHistory  OrderStatusHistory[]
+  deliveryJob    DeliveryJob?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -281,4 +288,19 @@ model Promo {
   updatedAt        DateTime @updatedAt
 
   @@map("promos")
+}
+
+model DeliveryJob {
+  id        String            @id @default(cuid())
+  orderId   String            @unique
+  order     Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driverId  String
+  driver    User              @relation("DriverJobs", fields: [driverId], references: [id], onDelete: Cascade)
+  status    DeliveryJobStatus @default(TAKEN)
+  earnings  Float
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([driverId])
+  @@map("delivery_jobs")
 }

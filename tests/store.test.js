@@ -10,7 +10,13 @@ describe('Store API Endpoints (Seller Experience)', () => {
     const testStoreName = 'Jest Test Store ' + Date.now();
 
     beforeAll(async () => {
-        
+        await prisma.store.deleteMany({
+            where: { user: { email: { in: ['buyer-store@seapedia.test', 'seller-store@seapedia.test'] } } }
+        }).catch(() => {});
+        await prisma.user.deleteMany({
+            where: { email: { in: ['buyer-store@seapedia.test', 'seller-store@seapedia.test'] } }
+        }).catch(() => {});
+
         const resBuyer = await request(app).post('/api/auth/register').send({
             email: 'buyer-store@seapedia.test',
             password: 'Password123!',

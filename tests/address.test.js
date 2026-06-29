@@ -10,6 +10,13 @@ describe('Address API Endpoints', () => {
     let addressId;
 
     beforeAll(async () => {
+        await prisma.address.deleteMany({
+            where: { user: { email: 'buyer.address@test.com' } }
+        }).catch(() => {});
+        await prisma.user.deleteMany({
+            where: { email: 'buyer.address@test.com' }
+        }).catch(() => {});
+
         const passwordHash = await bcrypt.hash('Password123', 10);
         const user = await prisma.user.create({
             data: {
