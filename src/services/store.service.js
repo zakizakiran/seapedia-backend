@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
+const { escapeHtml } = require('../utils/sanitize.utils');
 
 
 const getStores = async ({ page = 1, limit = 12, search }) => {
@@ -101,8 +102,11 @@ const createStore = async (userId, data) => {
         throw ApiError.badRequest('You already have a store.');
     }
 
+    const sanitizedName = escapeHtml(data.name);
+    const sanitizedDescription = data.description ? escapeHtml(data.description) : null;
+
     const existingName = await prisma.store.findUnique({
-        where: { name: data.name },
+        where: { name: sanitizedName },
     });
 
     if (existingName) {
@@ -111,8 +115,8 @@ const createStore = async (userId, data) => {
 
     const store = await prisma.store.create({
         data: {
-            name: data.name,
-            description: data.description || null,
+            name: sanitizedName,
+            description: sanitizedDescription,
             userId,
         },
     });
@@ -129,9 +133,13 @@ const updateStore = async (userId, data) => {
         throw ApiError.notFound('Store not found. Please create one first.');
     }
 
+    let sanitizedName = store.name;
+    let sanitizedDescription = store.description;
+
     if (data.name && data.name !== store.name) {
+        sanitizedName = escapeHtml(data.name);
         const existingName = await prisma.store.findUnique({
-            where: { name: data.name },
+            where: { name: sanitizedName },
         });
 
         if (existingName) {
@@ -139,11 +147,15 @@ const updateStore = async (userId, data) => {
         }
     }
 
+    if (data.description !== undefined) {
+        sanitizedDescription = data.description ? escapeHtml(data.description) : null;
+    }
+
     const updatedStore = await prisma.store.update({
         where: { userId },
         data: {
-            name: data.name !== undefined ? data.name : store.name,
-            description: data.description !== undefined ? data.description : store.description,
+            name: sanitizedName,
+            description: sanitizedDescription,
         },
     });
 

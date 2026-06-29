@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const ApiError = require('../utils/apiError');
+const { escapeHtml } = require('../utils/sanitize.utils');
 
 const getProducts = async ({ page = 1, limit = 12, search, storeId }) => {
     const skip = (page - 1) * limit;
@@ -118,10 +119,13 @@ const createProduct = async (userId, data) => {
         throw ApiError.badRequest('You must create a store first before adding products.');
     }
 
+    const sanitizedName = escapeHtml(data.name);
+    const sanitizedDescription = data.description ? escapeHtml(data.description) : null;
+
     const product = await prisma.product.create({
         data: {
-            name: data.name,
-            description: data.description,
+            name: sanitizedName,
+            description: sanitizedDescription,
             price: data.price,
             stock: data.stock,
             imageUrl: data.imageUrl,
@@ -153,11 +157,14 @@ const updateProduct = async (userId, productId, data) => {
         throw ApiError.forbidden('You do not have permission to update this product.');
     }
 
+    const sanitizedName = data.name !== undefined ? escapeHtml(data.name) : product.name;
+    const sanitizedDescription = data.description !== undefined ? (data.description ? escapeHtml(data.description) : null) : product.description;
+
     const updatedProduct = await prisma.product.update({
         where: { id: productId },
         data: {
-            name: data.name !== undefined ? data.name : product.name,
-            description: data.description !== undefined ? data.description : product.description,
+            name: sanitizedName,
+            description: sanitizedDescription,
             price: data.price !== undefined ? data.price : product.price,
             stock: data.stock !== undefined ? data.stock : product.stock,
             imageUrl: data.imageUrl !== undefined ? data.imageUrl : product.imageUrl,
