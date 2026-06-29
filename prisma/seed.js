@@ -124,6 +124,7 @@ async function main() {
             stock: 50,
             imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Laptop Gaming Pro',
@@ -132,6 +133,7 @@ async function main() {
             stock: 30,
             imageUrl: 'https://images.unsplash.com/photo-1531297172868-9441504a7b5c?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Smart TV 4K 50 Inch',
@@ -140,6 +142,7 @@ async function main() {
             stock: 40,
             imageUrl: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Headphone Bluetooth Noise Cancelling',
@@ -148,6 +151,7 @@ async function main() {
             stock: 20,
             imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Powerbank 20000mAh Fast Charging',
@@ -156,6 +160,7 @@ async function main() {
             stock: 60,
             imageUrl: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Smartwatch Fitness Tracker',
@@ -164,6 +169,7 @@ async function main() {
             stock: 100,
             imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Mechanical Keyboard RGB',
@@ -172,6 +178,7 @@ async function main() {
             stock: 80,
             imageUrl: 'https://images.unsplash.com/photo-1595225476474-87563907a212?q=80&w=800',
             storeId: store1.id,
+            category: 'Gadget',
         },
         {
             name: 'Kemeja Pria Lengan Panjang',
@@ -180,6 +187,7 @@ async function main() {
             stock: 70,
             imageUrl: 'https://images.unsplash.com/photo-1596755094514-f87e32f6b717?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Celana Jeans Denim Slim Fit',
@@ -188,6 +196,7 @@ async function main() {
             stock: 50,
             imageUrl: 'https://images.unsplash.com/photo-1542272604-780c8d17b2b7?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Sepatu Sneakers Kasual',
@@ -196,6 +205,7 @@ async function main() {
             stock: 120,
             imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Tas Ransel Kulit',
@@ -204,6 +214,7 @@ async function main() {
             stock: 45,
             imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Jaket Hoodie Pria',
@@ -212,6 +223,7 @@ async function main() {
             stock: 65,
             imageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Jam Tangan Analog Pria',
@@ -220,6 +232,7 @@ async function main() {
             stock: 90,
             imageUrl: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Kacamata Hitam Polarized',
@@ -228,6 +241,7 @@ async function main() {
             stock: 150,
             imageUrl: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
         {
             name: 'Dompet Kulit Pria Asli',
@@ -236,16 +250,17 @@ async function main() {
             stock: 85,
             imageUrl: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800',
             storeId: store2.id,
+            category: 'Fashion',
         },
     ];
 
-    const existingProducts = await prisma.product.count();
-    if (existingProducts === 0) {
-        await prisma.product.createMany({ data: productsData });
-        console.log(`[seed]: ${productsData.length} products created`);
-    } else {
-        console.log(`[seed]: Products already exist, skipping`);
-    }
+    await prisma.orderItem.deleteMany();
+    await prisma.order.deleteMany();
+    await prisma.cartItem.deleteMany();
+    await prisma.cart.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.product.createMany({ data: productsData });
+    console.log(`[seed]: ${productsData.length} products created`);
 
 
     const reviewsData = [
