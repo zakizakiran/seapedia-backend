@@ -249,6 +249,63 @@ async function main() {
         console.log(`[seed]: Reviews already exist, skipping`);
     }
 
+
+    const vouchersData = [
+        {
+            code: 'SEADISKON10K',
+            discountAmount: 10000,
+            discountPercent: null,
+            expiryDate: new Date('2027-12-31'),
+            remainingUsage: 100,
+        },
+        {
+            code: 'SEAFRESH20',
+            discountAmount: null,
+            discountPercent: 20,
+            expiryDate: new Date('2027-06-30'),
+            remainingUsage: 50,
+        },
+        {
+            code: 'LAUTBIRU5K',
+            discountAmount: 5000,
+            discountPercent: null,
+            expiryDate: new Date('2027-03-31'),
+            remainingUsage: 200,
+        },
+    ];
+
+    const existingVouchers = await prisma.voucher.count();
+    if (existingVouchers === 0) {
+        await prisma.voucher.createMany({ data: vouchersData });
+        console.log(`[seed]: ${vouchersData.length} vouchers created`);
+    } else {
+        console.log(`[seed]: Vouchers already exist, skipping`);
+    }
+
+
+    const promosData = [
+        {
+            code: 'PROMOSEAPEDIA',
+            discountAmount: null,
+            discountPercent: 15,
+            expiryDate: new Date('2027-12-31'),
+        },
+        {
+            code: 'HEMAT25K',
+            discountAmount: 25000,
+            discountPercent: null,
+            expiryDate: new Date('2027-09-30'),
+        },
+    ];
+
+    const existingPromos = await prisma.promo.count();
+    if (existingPromos === 0) {
+        await prisma.promo.createMany({ data: promosData });
+        console.log(`[seed]: ${promosData.length} promos created`);
+    } else {
+        console.log(`[seed]: Promos already exist, skipping`);
+    }
+
     console.log('[seed]: Seeding completed successfully');
 }
 
