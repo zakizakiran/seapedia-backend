@@ -8,6 +8,7 @@ const {
     registerValidator,
     loginValidator,
     selectRoleValidator,
+    addRoleValidator,
     refreshTokenValidator,
     logoutValidator,
 } = require('../validators/auth.validator');
@@ -17,6 +18,7 @@ router.post('/login', loginValidator, validate, authController.login);
 router.post('/refresh-token', refreshTokenValidator, validate, authController.refreshToken);
 
 router.post('/select-role', authenticate, selectRoleValidator, validate, authController.selectRole);
+router.post('/add-role', authenticate, addRoleValidator, validate, authController.addRole);
 router.delete('/logout', authenticate, logoutValidator, validate, authController.logout);
 router.get('/profile', authenticate, authController.getProfile);
 
