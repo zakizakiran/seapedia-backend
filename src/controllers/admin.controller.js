@@ -114,6 +114,33 @@ const getTimeInfo = async (req, res, next) => {
     }
 };
 
+const getAllStores = async (req, res, next) => {
+    try {
+        const stores = await adminService.getAllStores();
+        res.status(200).json({ status: 'success', data: { stores } });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getAllProducts = async (req, res, next) => {
+    try {
+        const products = await adminService.getAllProducts();
+        res.status(200).json({ status: 'success', data: { products } });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getAllDeliveryJobs = async (req, res, next) => {
+    try {
+        const jobs = await adminService.getAllDeliveryJobs();
+        res.status(200).json({ status: 'success', data: { deliveryJobs: jobs } });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
@@ -123,4 +150,7 @@ module.exports = {
     simulateNextDay,
     resetSimulatedTime,
     getTimeInfo,
+    getAllStores,
+    getAllProducts,
+    getAllDeliveryJobs,
 };

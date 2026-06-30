@@ -94,9 +94,41 @@ const getOverdueOrders = async () => {
     });
 };
 
+const getAllStores = async () => {
+    return await prisma.store.findMany({
+        include: {
+            seller: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+
+const getAllProducts = async () => {
+    return await prisma.product.findMany({
+        include: {
+            store: { select: { id: true, name: true } },
+            category: { select: { name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+
+const getAllDeliveryJobs = async () => {
+    return await prisma.deliveryJob.findMany({
+        include: {
+            driver: { select: { id: true, name: true, email: true } },
+            order: { select: { id: true, totalAmount: true, status: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+
 module.exports = {
     getDashboardStats,
     getAllUsers,
     getAllOrders,
     getOverdueOrders,
+    getAllStores,
+    getAllProducts,
+    getAllDeliveryJobs,
 };

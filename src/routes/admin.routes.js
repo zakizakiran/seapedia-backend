@@ -11,6 +11,9 @@ router.get('/dashboard', adminController.getDashboardStats);
 router.get('/users', adminController.getAllUsers);
 router.get('/orders', adminController.getAllOrders);
 router.get('/overdue-orders', adminController.getOverdueOrders);
+router.get('/stores', adminController.getAllStores);
+router.get('/products', adminController.getAllProducts);
+router.get('/delivery-jobs', adminController.getAllDeliveryJobs);
 
 router.post('/overdue/process', adminController.processOverdue);
 router.post('/simulate-day', adminController.simulateNextDay);
