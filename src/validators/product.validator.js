@@ -6,12 +6,14 @@ const createProductValidator = [
         .withMessage('Product name is required')
         .isString()
         .withMessage('Product name must be a string')
+        .escape()
         .isLength({ min: 3, max: 100 })
         .withMessage('Product name must be between 3 and 100 characters'),
     body('description')
         .optional()
         .isString()
         .withMessage('Description must be a string')
+        .escape()
         .isLength({ max: 1000 })
         .withMessage('Description must not exceed 1000 characters'),
     body('price')
@@ -35,12 +37,14 @@ const updateProductValidator = [
         .optional()
         .isString()
         .withMessage('Product name must be a string')
+        .escape()
         .isLength({ min: 3, max: 100 })
         .withMessage('Product name must be between 3 and 100 characters'),
     body('description')
         .optional()
         .isString()
         .withMessage('Description must be a string')
+        .escape()
         .isLength({ max: 1000 })
         .withMessage('Description must not exceed 1000 characters'),
     body('price')

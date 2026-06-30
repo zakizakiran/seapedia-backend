@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const createReviewValidator = [
     body('reviewerName')
         .trim()
+        .escape()
         .notEmpty()
         .withMessage('Reviewer name is required')
         .isLength({ min: 2, max: 100 })
@@ -14,6 +15,7 @@ const createReviewValidator = [
         .withMessage('Rating must be an integer between 1 and 5'),
     body('comment')
         .trim()
+        .escape()
         .notEmpty()
         .withMessage('Comment is required')
         .isLength({ min: 5, max: 1000 })

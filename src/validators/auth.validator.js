@@ -23,6 +23,7 @@ const registerValidator = [
         .withMessage('Password must contain at least one number'),
     body('name')
         .trim()
+        .escape()
         .notEmpty()
         .withMessage('Name is required')
         .isLength({ min: 2, max: 100 })
