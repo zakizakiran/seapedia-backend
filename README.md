@@ -2219,7 +2219,7 @@ Aplikasi SEAPEDIA dikeraskan (Hardened) terhadap berbagai kerentanan keamanan:
 
 Untuk mendemonstrasikan keseluruhan ekosistem Seapedia, lakukan flow berikut menggunakan klien sejenis Postman/Thunder Client:
 
-1. **Jalankan Uji Otomatis (100% Pass)**:
+1. **Jalankan Test Otomatis**:
    ```bash
    npm run test
    ```
